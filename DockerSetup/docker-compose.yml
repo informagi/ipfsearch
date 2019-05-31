@@ -60,6 +60,6 @@ services:
       - ipfs0
     volumes:
       - ipfs0:/data/files # maybe needed to access the files hosted on the node
-      - ../:/data # path where our /app/ folder is contained
+      - ../:/data/app # path where our /ipfsearch/ folder is contained
     # This command waits until ipfs0 is reachable before starting our .js with the argument ipfs0
     command: ["/bin/sh", "/wait-for", "ipfs0:5001", "--timeout=99", "--", "npm", "run", "start", "ipfs0"]
