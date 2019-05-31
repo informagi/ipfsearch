@@ -1,0 +1,28 @@
+{
+  "name": "ipfsearch",
+  "version": "1.0.0",
+  "description": "Searching in IPFS.",
+  "main": "main.js",
+  "scripts": {
+    "test": "node main.js",
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/informagi/ipfsearch.git"
+  },
+  "keywords": [
+    "search",
+    "ipfs",
+    "p2p"
+  ],
+  "author": "Mathis Sackers",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/informagi/ipfsearch/issues"
+  },
+  "homepage": "https://github.com/informagi/ipfsearch#readme",
+  "dependencies": {
+    "ipfs-http-client": "^32.0.1"
+  }
+}

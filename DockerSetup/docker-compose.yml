@@ -1,0 +1,65 @@
+version: '3.4'
+
+# This is based on an adaptation of the example docker-compose file for IPFS Cluster
+# It runs one Cluster peer (cluster0) attached to an IPFS daemons (ipfs0).
+# Furthermore, there is a copy of js-ipfs-http-client running (search0).
+# That implements the search code.
+#
+# 
+# Create volumes for persistant storage
+volumes:
+  ipfs0:
+  cluster0:
+
+# During the first start, default configurations are created for all peers.
+services:
+
+##################################################################################
+## Cluster PEER 0 ################################################################
+##################################################################################
+
+  ipfs0:
+    container_name: ipfs0
+    image: ipfs/go-ipfs:latest # in case it doesn't work, revert to v0.4.20
+    volumes:
+      - ipfs0:/data/ipfs
+
+  cluster0:
+    container_name: cluster0
+    image: ipfs/ipfs-cluster:latest # in case it doesn't work, revert to v0.10.1
+    depends_on:
+      - ipfs0
+    links:
+      - ipfs0
+    environment:
+      CLUSTER_SECRET: ${CLUSTER_SECRET} # From shell variable
+      IPFS_API: /dns4/ipfs0/tcp/5001
+    ports:
+          - "127.0.0.1:9094:9094" # API
+    volumes:
+      - cluster0:/data/ipfs-cluster
+      - ./wait-for:/wait-for
+    entrypoint:
+      - "/sbin/tini"
+      - "--"
+    # Translation: Wait until ipfs0 is reachable at 5001, because we get ERRORs when ipfs0 isn't up yet
+    command: >-
+      sh -c '
+        cmd="daemon --upgrade"
+        exec /wait-for ipfs0:5001 --timeout=99 -- echo "ipfs0 is up, we can start ourselves now" &
+        wait $$!
+        exec /usr/local/bin/entrypoint.sh $$cmd
+      '
+
+  search0:
+    container_name: search0
+    image: node-ipfs:pkg
+    depends_on:
+      - ipfs0
+    links:
+      - ipfs0
+    volumes:
+      - ipfs0:/data/files # maybe needed to access the files hosted on the node
+      - ../:/data # path where our /app/ folder is contained
+    # This command waits until ipfs0 is reachable before starting our .js with the argument ipfs0
+    command: ["/bin/sh", "/wait-for", "ipfs0:5001", "--timeout=99", "--", "npm", "run", "start", "ipfs0"]
