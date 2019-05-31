@@ -43,12 +43,12 @@ This step is not needed when using `node-ipfs:pkg`
 ## docker-compose.yml
 Although we provide a `docker-compose.yml` you might have to slightly adjust it.
 In *line 23* you might need to adjust the version of `go-ipfs` as mentioned above.
-Similarly, you might adjust the version of `ipfs-cluster` in *line 29*.
+Similarly, you might adjust the version of `ipfs-cluster` in *line 30*.
 
-In *line 56* choose `node-ipfs:pkg` or `node-ipfs:nopkg` depending on which you built/want to use.
+In *line 57* choose `node-ipfs:pkg` or `node-ipfs:nopkg` depending on which you built/want to use.
 
-You might need to adjust the path to `wait-for` in *line 41* and/or
-the path to the root folder of this repo (`../` relative to this file) in *line 63*.
+You might need to adjust the path to `wait-for` in *line 42* and/or
+the path to the root folder of this repo (`../` relative to this file) in *line 64*.
 Try absolute paths if you run into problems.
 
 ## Adding more peers

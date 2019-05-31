@@ -23,6 +23,7 @@ services:
     image: ipfs/go-ipfs:latest # in case it doesn't work, revert to v0.4.20
     volumes:
       - ipfs0:/data/ipfs
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
 
   cluster0:
     container_name: cluster0
