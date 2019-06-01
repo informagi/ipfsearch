@@ -1,11 +1,12 @@
 version: '3.4'
 
-# This is based on an adaptation of the example docker-compose file for IPFS Cluster
-# It runs one Cluster peer (cluster0) attached to an IPFS daemons (ipfs0).
-# Furthermore, there is a copy of js-ipfs-http-client running (search0).
-# That implements the search code.
-#
-# 
+# This file was automatically generated using generateDockerCompose.py
+# The template for this file is based on the example docker-compose file for IPFS Cluster
+# It runs three services per peer: One Cluster peer (clusterX) attached to an IPFS daemon (ipfsX)
+# with a copy of js-ipfs-http-client (searchX).
+# searchX runs the search code.
+
+
 # Create volumes for persistant storage
 volumes:
   ipfs0:
@@ -14,20 +15,21 @@ volumes:
 # During the first start, default configurations are created for all peers.
 services:
 
+
 ##################################################################################
 ## Cluster PEER 0 ################################################################
 ##################################################################################
 
   ipfs0:
     container_name: ipfs0
-    image: ipfs/go-ipfs:latest # in case it doesn't work, revert to v0.4.20
+    image: ipfs/go-ipfs:latest # tested with v0.4.20
     volumes:
       - ipfs0:/data/ipfs
     command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
 
   cluster0:
     container_name: cluster0
-    image: ipfs/ipfs-cluster:latest # in case it doesn't work, revert to v0.10.1
+    image: ipfs/ipfs-cluster:latest # tested with v0.10.1
     depends_on:
       - ipfs0
     links:
@@ -61,6 +63,6 @@ services:
       - ipfs0
     volumes:
       - ipfs0:/data/files # maybe needed to access the files hosted on the node
-      - ../:/data/app # path where our /ipfsearch/ folder is contained
+      - ../:/data/app # path where into our /ipfsearch/ folder, where main.js is located
     # This command waits until ipfs0 is reachable before starting our .js with the argument ipfs0
     command: ["/bin/sh", "/wait-for", "ipfs0:5001", "--timeout=99", "--", "npm", "run", "start", "ipfs0"]
