@@ -90,21 +90,18 @@ async function readFilesIntoObjects(index, path) {
  * load previous indices or generate and save new ones.
  */
 async function getIndex() {
-  try {
-    const stats = fs.statSync(`./${ipfs.host}/index0.json`); // one index exists
-    // file exists, load index from file
-    sLog("Loading indices from local files ...");
-    const contents = fs.readdirSync(`./${ipfs.host}/`);
-    for (i in contents) {
-      if (!fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
-        const indexFile = fs.readFileSync(`./${ipfs.host}/${contents[i]}`);
-        const indexDump = JSON.parse(indexFile);
-        global.indices[contents[i].substr(5,contents[i].length-10)] = elasticlunr.Index.load(indexDump);
-      }
+  const contents = fs.readdirSync(`./${ipfs.host}/`);
+  sLog("Trying to load indices from local files ...");
+  for (i in contents) {
+    if (!fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
+      const indexFile = fs.readFileSync(`./${ipfs.host}/${contents[i]}`);
+      const indexDump = JSON.parse(indexFile);
+      global.indices[contents[i].substr(5,contents[i].length-10)] = elasticlunr.Index.load(indexDump);
     }
-  } catch (error) {
+  }
+  if (global.indices.length < contents.length/2) {
     // file does not exist, create fresh index
-    sLog("Generating new index files ...");
+    sLog("No local indices exist, generating new index files ...");
     const contents = fs.readdirSync(`./${ipfs.host}/`);
     for (i in contents) {
       if (fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
