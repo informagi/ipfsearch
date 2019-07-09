@@ -1,5 +1,5 @@
 /*
- * prefix [main.js] to all logs
+ * prefix [--main--] to all logs
  */
 const log = function() {
     args = [];
@@ -11,49 +11,83 @@ const log = function() {
     console.log.apply( console, args );
 };
 
-log("This is just a short demonstration, that ipfs-http-client works and the cluster is setup correctly.");
-log("Arg: " + process.argv[2]);
 
-var ipfsClient = require("ipfs-http-client"); // talking to and through ipfs
-//const fs = require("fs"); // file management
-//const elasticlunr = require("elasticlunr"); // text search
-//var tools = require("./tools"); // list of searches?
-var Listener = require('./listener.js'); // listening to requests
-var Publisher = require('./publisher.js'); // publishing requests
+/*
+ * Assipn variables and constants
+ */
+// quick options
+const cleanPins = true;    // clear all the pins on this ipfs node
+const removeIndex = true;  // remove the index.json
+const search = false;      // search for documents
 
+// libraries and modules
+const ipfsClient = require("ipfs-http-client"); // talking to and through ipfs
+global.fs = require("fs"); // file management
+global.elasticlunr = require("elasticlunr"); // text search
+const Listener = require('./listener.js'); // listening to requests
+const Publisher = require('./publisher.js'); // publishing requests
+
+// ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located
-var ipfs = ipfsClient({ host: host, port: '5001', protocol: 'http' });
+global.ipfs = ipfsClient({ host: host, port: '5001', protocol: 'http' });
 ipfs.topic = "ipfsearch-v0.1";  // channel where the search happens (tacked onto ipfs to make passing it around easier)
 ipfs.Buffer = ipfsClient.Buffer;  // Buffer utility
+ipfs.host = host;  // attach host so we have it available globally
 
-/*
- * Nice to know infos that test whether the api works
- */
-ipfs.swarm.peers(function (err, peerInfos) {
-  if (err) { throw err; }
-  log("-----------");log("---Peers---");log("-----------");log(peerInfos);
-});
-
-ipfs.files.ls(function (err, files) {
-  if (err) { throw err; }
-  log("-----------");log("---Files---");log("-----------");
-  files.forEach((file) => { log(file.name); });
-});
-
-ipfs.id(function(err, identity) {
-  if (err) { throw err; }
-  log("-----------");log("---peerID---");log("------------");log(`${identity.id}`);
-});
+// search
+global.indices = {};
 
 
 /*
- * Start the actual search
+ * Remove all pins
  */
-Listener.listener(ipfs); // start a listener on the network and topic
-if (host === 'ipfs0') {
-  setTimeout(() => {Publisher.publisher(ipfs)}, 1000); // start the publisher, which sends out queries
+async function removePins() {
+  await ipfs.pin.ls()
+    .then(async (pinset) => {
+      if (pinset.length > 0) {
+        log(`Removing pinset of length ${pinset.length}`);
+        const a = [];
+        pinset.forEach((p) => {
+          if (p.type != 'indirect') {
+            a.push(ipfs.pin.rm(p.hash));
+          }
+        });
+        await Promise.all(a);
+      }
+    })
+    .catch((err) => {log(err);});
+  log('Removed pinset.');
 }
 
+
+/*
+ * "Main" of the program
+ */
+(async () => {
+  // housekeeping
+  if (cleanPins) {await removePins();}
+  if (removeIndex) {
+    log('Deleting Index files.');
+    try {
+      const contents = fs.readdirSync(`./${ipfs.host}/`);
+      for (i in contents) {
+        if (await !fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
+          await fs.unlinkSync(`./${ipfs.host}/${contents[i]}`);
+        }
+      }
+    } catch(e) { log(e); }
+  }
+  /*
+   * Start the actual search
+   */
+  log('Starting Listener');
+  Listener.listener(); // start a listener
+  if (search && host === 'ipfs0') {
+    setTimeout(() => {Publisher.publisher()}, 1000); // start the publisher, which sends out queries
+  } else {
+    // ...
+  }
+})();
 
 /*
  * this exitHandler handles what should happen on program.close

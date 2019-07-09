@@ -1,5 +1,5 @@
 /*
- * prefix [publisher.js] to all logs
+ * prefix [publishe] to all logs
  */
 const plog = function() {
     args = [];
@@ -69,7 +69,7 @@ function search(ipfs, query, score) {
 /*
  * This function handles some quick testing of our search functionality
  */
-function searchTests(ipfs) {
+function searchTests() {
   search(ipfs, "Ant-Man and the Wasp", 2.0);
   search(ipfs, "Potatoes", 2.0);
 }
@@ -78,8 +78,8 @@ function searchTests(ipfs) {
  * Main function of this file.
  * Invoked from the outside.
  */
-function publisher(ipfs) {
-  searchTests(ipfs);
+function publisher() {
+  searchTests();
 }
 
 module.exports.publisher = publisher;

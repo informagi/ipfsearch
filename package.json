@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/informagi/ipfsearch#readme",
   "dependencies": {
+    "elasticlunr": "^0.9.5",
     "ipfs-http-client": "^32.0.1"
   }
 }
