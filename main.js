@@ -31,8 +31,10 @@ const Publisher = require('./publisher.js');    // publishing requests
 // ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located
 global.ipfs = ipfsClient({ host: host, port: '5001', protocol: 'http' });
-ipfs.topic = "ipfsearch-v0.1";  // channel where the search happens (tacked onto ipfs to make passing it around easier)
 ipfs.Buffer = ipfsClient.Buffer;  // Buffer utility
+// ipfs-related stuff tacked on to make it available everywhere (a bit of a bad practice)
+ipfs.topic = "ipfsearch-v0.1-t";  // prefix for search channels
+ipfs.subbedTopics = [];  // topics we're subbed to
 ipfs.host = host;  // attach host so we have it available globally
 
 // search
@@ -100,11 +102,7 @@ async function removePins() {
  */
 async function exitHandler(options, exitCode) {
   if (options.cleanup) {
-    ipfs.pubsub.unsubscribe(ipfs.topic, err => {
-      if (err) {
-        return console.error(`Error: Failed to unsubscribe from ${ipfs.topic}`, err);
-      }
-    });
+    await Listener.unsubscribeAll();
     log("Clean exit. Goodbye.")
     process.exit();
   }
