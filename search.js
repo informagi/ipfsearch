@@ -40,7 +40,6 @@ function createIndex() {
   return index;
 }
 
-
 /*
  * adds file to elasticlunr index and ipfs
  */
@@ -62,7 +61,6 @@ async function addToIndex(index, filepath, filename) {
   return index;
 }
 
-
 /*
  * saves an index to a file
  */
@@ -72,7 +70,6 @@ async function saveIndex(index, path) {
     if (error) { sLog(error); }
   });
 }
-
 
 /*
  * calls addToIndex on all files in a folder
@@ -84,7 +81,6 @@ async function readFilesIntoObjects(index, path) {
     await Promise.all(files.slice(i*200, i*200+200).map(file => addToIndex(index, `${path}/${file}`, file)));
   }
 }
-
 
 /*
  * load previous indices or generate and save new ones.
@@ -113,7 +109,6 @@ async function getIndex() {
     }
   }
 }
-
 
 /*
  * Search in an index

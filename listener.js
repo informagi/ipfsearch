@@ -36,7 +36,6 @@ function sub(topic) {
     });
 }
 
-
 /*
  * unsubscribe from a topic
  */
@@ -50,7 +49,6 @@ function unsub(topic) {
       lLog(`Unsubscibed from channel ${topic}`)})
     .catch(e => { lLog(`Error: ${e}`); });
 }
-
 
 /*
  * Unsubscribes from all channels (in the subbedTopics array)

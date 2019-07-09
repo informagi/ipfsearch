@@ -11,7 +11,6 @@ const log = function() {
     console.log.apply( console, args );
 };
 
-
 /*
  * Assign variables and constants
  */
@@ -40,7 +39,6 @@ ipfs.host = host;  // attach host so we have it available globally
 // search
 global.indices = {};
 
-
 /*
  * Remove all pins
  */
@@ -61,7 +59,6 @@ async function removePins() {
     .catch((err) => {log(err);});
   log('Removed pinset.');
 }
-
 
 /*
  * "Main" of the program
