@@ -22,7 +22,8 @@ Here too, we use the official image `ipfs/ipfs-cluster:latest`.
 ### Node-IPFS
 This one we build ourselves.
 In this folder you can find two versions of Node-IPFS.
-One that already includes the npm package `ipfs-http-client` (`NodePkgDockerfile.sh`) and one that does not (`NodeNoPkgDockerfile.sh`).
+One that already includes the required npm packages (`NodePkgDockerfile.sh`) and one that does not (`NodeNoPkgDockerfile.sh`).
+🚧`NodePkgDockerfile.sh` is incomplete, use the other one for now.🚧
 Choose one, rename it to `Dockerfile` (No file extension) and build it by running
 ```bash
 docker build -t node-ipfs:pkg .
