@@ -23,36 +23,44 @@ const receiveMsg = msg => {
 };
 
 /*
- * Main function of this file.
- * Invoked from the outside and then listening on standby.
+ * subscribe to a topic
  */
-async function listener() {
-  // subscribe to the topic to be able to receive updates
-  ipfs.pubsub.subscribe(ipfs.topic, receiveMsg, err => {
-    if (err) { return lLog(`Error: Failed to subscribe to ${ipfs.topic}`, err); }
-    ipfs.subbedTopics.push(ipfs.topic);
-    lLog(`Listening on channel ${ipfs.topic}`);
-  });
+function sub(topic) {
+  return ipfs.pubsub.subscribe(topic, receiveMsg)
+    .then(() => {
+      ipfs.subbedTopics.push(topic);
+      lLog(`Listening on channel ${topic}`);})
+    .catch((err) => {
+      lLog(`Error: Failed to subscribe to ${ipfs.topic}`);
+      lLog(err);
+    });
+}
+
+
+/*
+ * unsubscribe from a topic
+ */
+function unsub(topic) {
+  return ipfs.pubsub.unsubscribe(topic)
+    .then(() => {
+      const i = ipfs.subbedTopics.indexOf(topic);
+      if (i > -1) {
+        ipfs.subbedTopics.splice(i, 1);
+      }
+      lLog(`Unsubscibed from channel ${topic}`)})
+    .catch(e => { lLog(`Error: ${e}`); });
 }
 
 
 /*
  * Unsubscribes from all channels (in the subbedTopics array)
  */
-async function unsubscribeAll() {
-  const tmp = ipfs.subbedTopics.slice();
-  tmp.push('invalid')
-  ipfs.subbedTopics = [];
-  await Promise.all(tmp.map((topic) => {
-    return ipfs.pubsub.unsubscribe(topic)
-      .then(() => {lLog(`Unsubscibed from channel ${topic}`)})
-      .catch(e => {
-        lLog(`Error: ${e}`);
-        ipfs.subbedTopics.push(topic)});
-  }));
+async function unsubAll() {
+  await Promise.all(ipfs.subbedTopics.map((topic) => { return unsub(topic); }));
   if (ipfs.subbedTopics.length === 0) return;
   lLog('Error: Did not unsubscribe from all channels.');
 }
 
-module.exports.listener = listener;
-module.exports.unsubscribeAll = unsubscribeAll;
+module.exports.sub = sub;
+module.exports.unsub = unsub;
+module.exports.unsubAll = unsubAll;

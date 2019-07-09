@@ -84,7 +84,7 @@ async function removePins() {
   await Search.getIndex();
   // subscribe to the topics we provide search on
   log('Starting Listener');
-  Listener.listener();
+  await Listener.sub(ipfs.topic);
   // ask in other topics for files we can additionally host
   // TODO ~~ Publisher.askFiles(topic);
   // add those new files to ipfs and the index
@@ -102,7 +102,7 @@ async function removePins() {
  */
 async function exitHandler(options, exitCode) {
   if (options.cleanup) {
-    await Listener.unsubscribeAll();
+    await Listener.unsubAll();
     log("Clean exit. Goodbye.")
     process.exit();
   }
