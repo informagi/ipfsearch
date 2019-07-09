@@ -29,7 +29,7 @@ args = parser.parse_args()
 if args.topics < 1:
     print('ERROR: TOPICS < 1 (' + args.topics + ')')
     sys.exit(1)
-elif args.topics > 100:
+elif args.topics > 10:
     print('WARNING: You are generating a large number of TOPICS (' + args.topics + ')')
     sys.stdout.flush()
 if args.maxfiles < 1:
