@@ -13,19 +13,20 @@ const log = function() {
 
 
 /*
- * Assipn variables and constants
+ * Assign variables and constants
  */
 // quick options
-const cleanPins = true;    // clear all the pins on this ipfs node
-const removeIndex = true;  // remove the index.json
-const search = false;      // search for documents
+const cleanPins = false;   // clear all the pins on this ipfs node
+const removeIndex = false; // remove the index.json
+const runQueries = false;  // search for documents
 
 // libraries and modules
 const ipfsClient = require("ipfs-http-client"); // talking to and through ipfs
-global.fs = require("fs"); // file management
-global.elasticlunr = require("elasticlunr"); // text search
-const Listener = require('./listener.js'); // listening to requests
-const Publisher = require('./publisher.js'); // publishing requests
+global.fs = require("fs");                      // file management
+global.elasticlunr = require("elasticlunr");    // text search
+const Search = require('./search.js');          // building and searching indices
+const Listener = require('./listener.js');      // listening to requests
+const Publisher = require('./publisher.js');    // publishing requests
 
 // ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located
@@ -77,12 +78,17 @@ async function removePins() {
       }
     } catch(e) { log(e); }
   }
-  /*
-   * Start the actual search
-   */
+  // make sure we can search our own files.
+  await Search.getIndex();
+  // subscribe to the topics we provide search on
   log('Starting Listener');
-  Listener.listener(); // start a listener
-  if (search && host === 'ipfs0') {
+  Listener.listener();
+  // ask in other topics for files we can additionally host
+  // TODO ~~ Publisher.askFiles(topic);
+  // add those new files to ipfs and the index
+  // TODO ~~ Search.addIndex(new files)
+  if (runQueries && host === 'ipfs0') {
+    // send out queries to test the system
     setTimeout(() => {Publisher.publisher()}, 1000); // start the publisher, which sends out queries
   } else {
     // ...
