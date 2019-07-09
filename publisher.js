@@ -1,7 +1,7 @@
 /*
  * prefix [publishe] to all logs
  */
-const plog = function() {
+const pLog = function() {
     args = [];
     args.push( '[publishe] ' );
     // Note: arguments is part of the prototype
@@ -17,9 +17,9 @@ const plog = function() {
  */
 const receiveMsg = msg => {
   const data = JSON.parse(msg.data.toString());
-  plog(`I received ${data.event} for: ${data.query}`);
-  plog(`The payload is:`);
-  plog(data.payload);
+  pLog(`I received ${data.event} for: ${data.query}`);
+  pLog(`The payload is:`);
+  pLog(data.payload);
 };
 
 /*
@@ -31,7 +31,7 @@ function publishQuery(ipfs, event, query) {
 
   ipfs.pubsub.publish(ipfs.topic, msgEncoded, err => {
     if (err) {
-      return console.error(`Error: Failed to publish to ${ipfs.topic}`, err);
+      return pLog(`Error: Failed to publish to ${ipfs.topic}`, err);
     }
   });
 }
@@ -55,14 +55,14 @@ function uniquify(list) {
  * this function returns the queryhit for the query
  */
 function search(ipfs, query, score) {
-  plog(`Starting search for ${query} ...`);
+  pLog(`Starting search for ${query} ...`);
 
   if (true) {
-    plog(`Local results scored too low`);
-    plog(`Published a query for '${query}' on the network`);
+    pLog(`Local results scored too low`);
+    pLog(`Published a query for '${query}' on the network`);
     publishQuery(ipfs, "query", query);
   } else {
-    plog(`Local results were sufficient`);
+    pLog(`Local results were sufficient`);
   }
 }
 
