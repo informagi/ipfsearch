@@ -67,7 +67,7 @@ It would include 3 peers.
 
 ## Running the whole thing
 While you can run the cluster without any data, it is more fun to run it with data.
-Checkout the `Readme.md` inside the `../Data/` folder to get an explanation of how to obtain it.
+Checkout the `Readme.md` inside the [`../Data/`](https://github.com/informagi/ipfsearch/tree/master/Data) folder to get an explanation of how to obtain it.
 
 
 Before running the stack it is a good idea to generate a cluster secret.

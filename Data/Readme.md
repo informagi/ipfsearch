@@ -41,4 +41,4 @@ The folders inside the `/ipfsX/` folders denote the topic that the files belong 
 ## Using the data
 Finally, move the `/ipfs0/`, etc. folders up into the repositories root such that they can be used by the search nodes.
 
-Now return to (or start with) the `Readme.md` inside the `../DockerSetup/` folder.
+Now return to (or start with) the `Readme.md` inside the [`../DockerSetup/`](https://github.com/informagi/ipfsearch/tree/master/DockerSetup) folder.
