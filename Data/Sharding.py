@@ -17,6 +17,8 @@ parser.add_argument("-n", "--nodes", type=int, default=5,
                     help="the number of peers to distribute the files to, default: 2")
 parser.add_argument("-ho", "--homogeneity", type=float, default=0.5,
                     help="how homogenous the files per peer are (0: not at all, 1: very), default: 0.5")
+parser.add_argument("-m", "--maxfiles", type=int, default=2000,
+                    help="Maximum files per node, default: 2000")
 parser.add_argument("-i", "--input", default="./dump",
                     help="Input-folder, default: ./dump")
 parser.add_argument("mode", nargs='?', default="Random",
@@ -29,6 +31,12 @@ if args.topics < 1:
     sys.exit(1)
 elif args.topics > 100:
     print('WARNING: You are generating a large number of TOPICS (' + args.topics + ')')
+    sys.stdout.flush()
+if args.maxfiles < 1:
+    print('ERROR: maxfiles < 1 (' + args.maxfiles + ')')
+    sys.exit(1)
+elif args.maxfiles > 5000:
+    print('WARNING: You are distributing a large number of files per node (' + args.maxfiles + ')')
     sys.stdout.flush()
 if args.nodes < 1:
     print('ERROR: NODES < 1 (' + args.nodes + ')')
@@ -99,7 +107,7 @@ def shardFiles(model=0, dct=0):
 def distributeFiles(numFiles):
     """ Move files to nodes
     """
-    nodeFiles = math.ceil(numFiles/args.nodes)
+    nodeFiles = min(math.ceil(numFiles/args.nodes), args.maxfiles)
     for n in range(args.nodes):
         movedFiles = 0
         topic = choice([t for t in os.listdir(args.input)])
