@@ -50,7 +50,9 @@ ipfs.id(function(err, identity) {
  * Start the actual search
  */
 Listener.listener(ipfs); // start a listener on the network and topic
-setTimeout(() => {Publisher.publisher(ipfs)}, 1000); // start the publisher, which sends out queries
+if (host === 'ipfs0') {
+  setTimeout(() => {Publisher.publisher(ipfs)}, 1000); // start the publisher, which sends out queries
+}
 
 
 /*

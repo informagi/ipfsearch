@@ -1,3 +1,16 @@
+# Project specific
+# Data
+Data/dump*
+Data/enwiki*
+Data/extracted*
+# Runtime data
+ipfs*/
+# Data script (get it from https://github.com/attardi/wikiextractor)
+Data/WikiExtractor.py
+# trained models
+Data/models/
+
+# General things
 # Logs
 logs
 *.log

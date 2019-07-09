@@ -66,6 +66,10 @@ would generate a `docker-compose.yml`, even if one already existed, with `node-i
 It would include 3 peers.
 
 ## Running the whole thing
+While you can run the cluster without any data, it is more fun to run it with data.
+Checkout the `Readme.md` inside the `../Data/` folder to get an explanation of how to obtain it.
+
+
 Before running the stack it is a good idea to generate a cluster secret.
 To do that, run - inside the command interface you will use to start the stack - the command
 ```bash
