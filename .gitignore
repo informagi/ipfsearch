@@ -1,8 +1,9 @@
 # Project specific
 # Data
 Data/dump*
-Data/enwiki*
 Data/extracted*
+Data/enwiki*
+Data/corpus*
 # Runtime data
 ipfs*/
 # Data script (get it from https://github.com/attardi/wikiextractor)
