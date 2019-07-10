@@ -2,13 +2,13 @@
  * prefix [listener] to all logs
  */
 const lLog = function() {
-    args = [];
-    args.push( '[listener] ' );
-    // Note: arguments is part of the prototype
-    for( var i = 0; i < arguments.length; i++ ) {
-        args.push( arguments[i] );
-    }
-    console.log.apply( console, args );
+  args = [];
+  args.push('[listener] ');
+  // Note: arguments is part of the prototype
+  for(let i = 0; i < arguments.length; i++) {
+    args.push( arguments[i] );
+  }
+  console.log.apply(console, args);
 };
 
 /*

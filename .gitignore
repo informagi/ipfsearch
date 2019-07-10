@@ -12,6 +12,9 @@ Data/WikiExtractor.py
 Data/models/
 
 # General things
+# Sublime Text files
+*.sublime-*
+
 # Logs
 logs
 *.log

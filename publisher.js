@@ -2,38 +2,54 @@
  * prefix [publishe] to all logs
  */
 const pLog = function() {
-    args = [];
-    args.push( '[publishe] ' );
-    // Note: arguments is part of the prototype
-    for( var i = 0; i < arguments.length; i++ ) {
-        args.push( arguments[i] );
-    }
-    console.log.apply( console, args );
+  args = [];
+  args.push('[publishe] ');
+  // Note: arguments is part of the prototype
+  for(let i = 0; i < arguments.length; i++) {
+    args.push(arguments[i]);
+  }
+  console.log.apply(console, args);
 };
 
 /*
- * called on received messages.
- * Just prints them.
+ * publish a message to network
  */
-const receiveMsg = msg => {
-  const data = JSON.parse(msg.data.toString());
-  pLog(`I received ${data.event} for: ${data.query}`);
-  pLog(`The payload is:`);
-  pLog(data.payload);
-};
+function pub(channel, event, query, payload) {
+  const msgEncoded = ipfs.Buffer.from(JSON.stringify({ event, query, payload }));
+  return ipfs.pubsub.publish(channel, msgEncoded)
+    .then(() => pLog(`Published ${event} in channel ${channel}`))
+    .catch(err => {
+      pLog(`Error: Failed to publish ${event} to channel ${channel}`);
+      pLog(err);
+    });
+}
 
 /*
  * publish query to network
  */
-function publishQuery(ipfs, event, query) {
-  var msgObject = { event: event, query: query, payload: ""};
-  var msgEncoded = ipfs.Buffer.from(JSON.stringify(msgObject));
+function pubQuery(topic, query) {
+  return pub(topic, 'query', query, '')
+}
 
-  ipfs.pubsub.publish(ipfs.topic, msgEncoded, err => {
-    if (err) {
-      return pLog(`Error: Failed to publish to ${ipfs.topic}`, err);
-    }
-  });
+/*
+ * publish answer to network
+ */
+function pubAnswer(topic, query, results) {
+  return pub(topic, 'answer', query, results)
+}
+
+/*
+ * publish request for files to network
+ */
+function pubFileReq(topic, request) {
+  return pub(topic, 'fileReq', request, '')
+}
+
+/*
+ * publish response to request for files to network
+ */
+function pubFileRes(topic, request, results) {
+  return pub(topic, 'fileRes', request, results)
 }
 
 /*
@@ -48,38 +64,7 @@ function uniquify(list) {
   return uniqueArray;
 }
 
-/*
- * this functon is the backbone of our application
- * we use this function to search for a given query
- *
- * this function returns the queryhit for the query
- */
-function search(ipfs, query, score) {
-  pLog(`Starting search for ${query} ...`);
-
-  if (true) {
-    pLog(`Local results scored too low`);
-    pLog(`Published a query for '${query}' on the network`);
-    publishQuery(ipfs, "query", query);
-  } else {
-    pLog(`Local results were sufficient`);
-  }
-}
-
-/*
- * This function handles some quick testing of our search functionality
- */
-function searchTests() {
-  search(ipfs, "Ant-Man and the Wasp", 2.0);
-  search(ipfs, "Potatoes", 2.0);
-}
-
-/*
- * Main function of this file.
- * Invoked from the outside.
- */
-function publisher() {
-  searchTests();
-}
-
-module.exports.publisher = publisher;
+module.exports.pubQuery = pubQuery;
+module.exports.pubAnswer = pubAnswer;
+module.exports.pubFileReq = pubFileReq;
+module.exports.pubFileRes = pubFileRes;

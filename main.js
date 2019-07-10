@@ -2,13 +2,13 @@
  * prefix [--main--] to all logs
  */
 const log = function() {
-    args = [];
-    args.push( '[--main--] ' );
-    // Note: arguments is part of the prototype
-    for( var i = 0; i < arguments.length; i++ ) {
-        args.push( arguments[i] );
-    }
-    console.log.apply( console, args );
+  args = [];
+  args.push('[--main--] ');
+  // Note: arguments is part of the prototype
+  for(let i = 0; i < arguments.length; i++) {
+    args.push(arguments[i]);
+  }
+  console.log.apply(console, args);
 };
 
 /*
@@ -23,7 +23,8 @@ const runQueries = false;  // search for documents
 const ipfsClient = require("ipfs-http-client"); // talking to and through ipfs
 global.fs = require("fs");                      // file management
 global.elasticlunr = require("elasticlunr");    // text search
-const Search = require('./search.js');          // building and searching indices
+const Index = require('./index.js');            // building indices
+const Search = require('./search.js');          // searching
 const Listener = require('./listener.js');      // listening to requests
 const Publisher = require('./publisher.js');    // publishing requests
 
@@ -78,17 +79,17 @@ async function removePins() {
     } catch(e) { log(e); }
   }
   // make sure we can search our own files.
-  await Search.getIndex();
+  await Index.getIndex();
   // subscribe to the topics we provide search on
   log('Starting Listener');
   await Listener.sub(ipfs.topic);
   // ask in other topics for files we can additionally host
   // TODO ~~ Publisher.askFiles(topic);
   // add those new files to ipfs and the index
-  // TODO ~~ Search.addIndex(new files)
+  // TODO ~~ Index.addToIndex(new files)
   if (runQueries && host === 'ipfs0') {
     // send out queries to test the system
-    setTimeout(() => {Publisher.publisher()}, 1000); // start the publisher, which sends out queries
+    setTimeout(() => {Search.searchTest()}, 5000); // Run some testing queries
   } else {
     // ...
   }
