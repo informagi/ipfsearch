@@ -16,10 +16,10 @@ const pLog = function() {
  */
 function pub(channel, event, query, payload) {
   const msgEncoded = ipfs.Buffer.from(JSON.stringify({ event, query, payload }));
-  return ipfs.pubsub.publish(channel, msgEncoded)
-    .then(() => pLog(`Published ${event} in channel ${channel}`))
+  return ipfs.pubsub.publish(`${ipfsearch.topic}${channel}`, msgEncoded)
+    .then(() => pLog(`Published ${event} in channel ${ipfsearch.topic}${channel}`))
     .catch(err => {
-      pLog(`Error: Failed to publish ${event} to channel ${channel}`);
+      pLog(`Error: Failed to publish ${event} to channel ${ipfsearch.topic}${channel}`);
       pLog(err);
     });
 }

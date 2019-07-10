@@ -89,7 +89,7 @@ async function getIndex() {
   const contents = fs.readdirSync(`./${ipfs.host}/`);
   iLog('Trying to load indices from local files ...');
   for (i in contents) {
-    if (!fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
+    if (contents[i][0] === 'i' && !fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
       const indexFile = fs.readFileSync(`./${ipfs.host}/${contents[i]}`);
       const indexDump = JSON.parse(indexFile);
       global.indices[contents[i].substr(5,contents[i].length-10)] = elasticlunr.Index.load(indexDump);

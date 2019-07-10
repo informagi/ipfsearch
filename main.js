@@ -17,7 +17,7 @@ const log = function() {
 // quick options
 const cleanPins = false;   // clear all the pins on this ipfs node
 const removeIndex = false; // remove the index.json
-const runQueries = false;  // search for documents
+const runQueries = true;   // search for documents
 
 // libraries and modules
 const ipfsClient = require("ipfs-http-client"); // talking to and through ipfs
@@ -25,17 +25,20 @@ global.fs = require("fs");                      // file management
 global.elasticlunr = require("elasticlunr");    // text search
 const Index = require('./index.js');            // building indices
 const Search = require('./search.js');          // searching
-const Listener = require('./listener.js');      // listening to requests
-const Publisher = require('./publisher.js');    // publishing requests
+global.Listener = require('./listener.js');     // listening to requests
+global.Publisher = require('./publisher.js');   // publishing requests
 
 // ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located
 global.ipfs = ipfsClient({ host: host, port: '5001', protocol: 'http' });
-ipfs.Buffer = ipfsClient.Buffer;  // Buffer utility
-// ipfs-related stuff tacked on to make it available everywhere (a bit of a bad practice)
-ipfs.topic = "ipfsearch-v0.1-t";  // prefix for search channels
-ipfs.subbedTopics = [];  // topics we're subbed to
-ipfs.host = host;  // attach host so we have it available globally
+ipfs.Buffer = ipfsClient.Buffer;         // Buffer utility
+ipfs.host = host;                        // this is us
+global.ipfsearch = {};                   // global object with search-related data
+ipfsearch.topic = 'ipfsearch-v0.1-';     // prefix for search channels
+ipfsearch.subbedTopics = [];             // topics we're subbed to
+ipfsearch.subOwners = {};                // keep track of who created a subscription
+ipfsearch.watchlist = [];                // the queries we pay attention to
+ipfsearch.results = {};                  // results caught while watching
 
 // search
 global.indices = {};
@@ -81,15 +84,16 @@ async function removePins() {
   // make sure we can search our own files.
   await Index.getIndex();
   // subscribe to the topics we provide search on
+  // TODO
   log('Starting Listener');
-  await Listener.sub(ipfs.topic);
+  await Listener.sub('default');
   // ask in other topics for files we can additionally host
   // TODO ~~ Publisher.askFiles(topic);
   // add those new files to ipfs and the index
   // TODO ~~ Index.addToIndex(new files)
-  if (runQueries && host === 'ipfs0') {
+  if (runQueries) {
     // send out queries to test the system
-    setTimeout(() => {Search.searchTest()}, 5000); // Run some testing queries
+    setTimeout(() => {Search.searchTests()}, 5000); // Run some testing queries
   } else {
     // ...
   }
