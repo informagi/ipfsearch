@@ -14,19 +14,15 @@ const log = function() {
 /*
  * Assign variables and constants
  */
-// quick options
-const cleanPins = false;   // clear all the pins on this ipfs node
-const removeIndex = false; // remove the index.json
-const runQueries = true;   // search for documents
-
 // libraries and modules
-const ipfsClient = require("ipfs-http-client"); // talking to and through ipfs
-global.fs = require("fs");                      // file management
-global.elasticlunr = require("elasticlunr");    // text search
+const ipfsClient = require('ipfs-http-client'); // talking to and through ipfs
+global.fs = require('fs');                      // file management
+global.elasticlunr = require('elasticlunr');    // text search
 const Index = require('./index.js');            // building indices
 const Search = require('./search.js');          // searching
 global.Listener = require('./listener.js');     // listening to requests
 global.Publisher = require('./publisher.js');   // publishing requests
+global.cfg = require('./config.js');              // parameters and settings
 
 // ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located
@@ -65,12 +61,12 @@ async function removePins() {
 }
 
 /*
- * "Main" of the program
+ * 'Main' of the program
  */
 (async () => {
   // housekeeping
-  if (cleanPins) {await removePins();}
-  if (removeIndex) {
+  if (cfg.cleanPins) {await removePins();}
+  if (cfg.removeIndex) {
     log('Deleting Index files.');
     try {
       const contents = fs.readdirSync(`./${ipfs.host}/`);
@@ -91,11 +87,11 @@ async function removePins() {
   // TODO ~~ Publisher.askFiles(topic);
   // add those new files to ipfs and the index
   // TODO ~~ Index.addToIndex(new files)
-  if (runQueries) {
+  if (cfg.runQueries) {
     // send out queries to test the system
     setTimeout(() => {Search.searchTests()}, 5000); // Run some testing queries
   } else {
-    // ...
+    log('Not running queries, so we\'re pretty much done here.');
   }
 })();
 
@@ -105,24 +101,24 @@ async function removePins() {
 async function exitHandler(options, exitCode) {
   if (options.cleanup) {
     await Listener.unsubAll();
-    log("Clean exit. Goodbye.")
+    log('Clean exit. Goodbye.')
     process.exit();
   }
   if (exitCode || exitCode === 0) {
     log(`Received exitcode: ${exitCode}`);
   }
   if (options.exit) {
-    log("Exit.");
+    log('Exit.');
     process.exit();
   }
 }
 
 // do something when app is closing
-process.on("exit", exitHandler.bind(null, {}));
+process.on('exit', exitHandler.bind(null, {}));
 // catches ctrl+c event
-process.on("SIGINT", exitHandler.bind(null, { cleanup: true }));
-// catches "kill pid" (for example: nodemon restart)
-process.on("SIGUSR1", exitHandler.bind(null, {}));
-process.on("SIGUSR2", exitHandler.bind(null, {}));
+process.on('SIGINT', exitHandler.bind(null, { cleanup: true }));
+// catches 'kill pid' (for example: nodemon restart)
+process.on('SIGUSR1', exitHandler.bind(null, {}));
+process.on('SIGUSR2', exitHandler.bind(null, {}));
 // catches termination (docker-compose down)
-process.on("SIGTERM", exitHandler.bind(null, { cleanup: true }));
+process.on('SIGTERM', exitHandler.bind(null, { cleanup: true }));
