@@ -80,9 +80,11 @@ async function removePins() {
   // make sure we can search our own files.
   await Index.getIndex();
   // subscribe to the topics we provide search on
-  // TODO
-  log('Starting Listener');
-  await Listener.sub('default');
+  const subTopics = await Index.getRelevantTopics();
+  log(`Subscribing to ${subTopics.length} topic(s) ...`);
+  for (i in subTopics) {
+    await Listener.sub(subTopics[i]);
+  }
   // ask in other topics for files we can additionally host
   // TODO ~~ Publisher.askFiles(topic);
   // add those new files to ipfs and the index

@@ -110,4 +110,41 @@ async function getIndex() {
   }
 }
 
+/*
+ * determine which channels to join
+ */
+async function getRelevantTopics() {
+  if (cfg.maxChannels < 1) {
+    iLog(`Error: maxChannels too low (${cfg.maxChannels})`);
+  }
+  const contents = await fs.readdirSync(`./${ipfs.host}/`);
+  const counts = [];
+  await Promise.all(contents.map(async (content) => {
+    if (fs.statSync(`./${ipfs.host}/${content}`).isDirectory()) {
+      const files = await fs.readdirSync(`./${ipfs.host}/${content}/`);
+      counts.push({'t': content, 'c': files.length});
+    }
+  }));
+  let total = 0;
+  for (i in counts) {
+    total += counts[i].c;
+  }
+  iLog(`Hosting ${total} files ...`);
+  counts.sort((a,b) => {return b.c-a.c});
+  const r = [];
+  for (i in counts) {
+    if (counts[i].c >= total*cfg.topicThreshold) {
+      r.push(counts[i].t);
+    }
+    if (r.length >= cfg.maxChannels) {
+      break;
+    }
+  }
+  if (r.length === 0) {
+    iLog(`Error: topicThreshold (${cfg.topicThreshold}) not met for any topic.`);
+  }
+  return r;
+}
+
 module.exports.getIndex = getIndex;
+module.exports.getRelevantTopics = getRelevantTopics;
