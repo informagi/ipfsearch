@@ -95,7 +95,7 @@ async function getIndex() {
       global.indices[contents[i].substr(5,contents[i].length-10)] = elasticlunr.Index.load(indexDump);
     }
   }
-  if (global.indices.length < contents.length/2) {
+  if (Object.keys(global.indices).length === 0) {
     // file does not exist, create fresh index
     iLog('No local indices exist, generating new index files ...');
     const contents = fs.readdirSync(`./${ipfs.host}/`);
