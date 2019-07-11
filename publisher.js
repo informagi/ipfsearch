@@ -12,6 +12,37 @@ const pLog = function() {
 };
 
 /*
+ * pin file to network
+ */
+async function pin(filedata) {
+  const content = ipfs.Buffer.from(filedata);
+  return ipfs.add(content);
+}
+
+/*
+ * pin all files to the network
+ */
+async function pinAll() {
+  pLog('Pinning all files ...');
+  const contents = fs.readdirSync(`./${ipfs.host}/`);
+  for (i in contents) {
+    const path = `./${ipfs.host}/${contents[i]}`;
+    if (fs.statSync(path).isDirectory()) {
+      const files = fs.readdirSync(path);
+      pLog(`Pinning ${files.length} in ${path}`);
+      // only add 200 entries at a time, because the socket might not be able to handle all at once
+      for (let i = Math.ceil(files.length/200)-1; i >= 0; i--) {
+        await Promise.all(files.slice(i*200, i*200+200).map(async (file) => {
+          const filedata = fs.readFileSync(`${path}/${file}`, 'utf8');
+          await pin(filedata);
+        }));
+      }
+    }
+  }
+  pLog('Pinned all files.');
+}
+
+/*
  * publish a message to network
  */
 function pub(channel, event, query, payload) {
@@ -68,3 +99,5 @@ module.exports.pubQuery = pubQuery;
 module.exports.pubAnswer = pubAnswer;
 module.exports.pubFileReq = pubFileReq;
 module.exports.pubFileRes = pubFileRes;
+module.exports.pin = pin;
+module.exports.pinAll = pinAll;

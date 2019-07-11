@@ -45,15 +45,12 @@ function createIndex() {
  */
 async function addToIndex(index, filepath, filename) {
   try {
-    // add file to ipfs, bad practice, should not be in this file :(
-    const filedata = fs.readFileSync(filepath, 'utf8');
-    const content = ipfs.Buffer.from(filedata);
-    const results = await ipfs.add(content);
-    const hash = results[0].hash;
+    const filedata = await fs.readFileSync(filepath, 'utf8');
+    // add file to ipfs
+    const r = await Publisher.pin(filedata);
     // put object into index
-    const obj = new Obj(hash, filename, filedata);
+    const obj = new Obj(r[0].hash, filename, filedata);
     index.addDoc(obj);
-    elasticlunr.clearStopWords(); // remove default English stop words
   } catch (error) {
     iLog(`Error : File ${filename} has not been added to the index`);
     iLog(`Reason: ${error}`);
@@ -148,3 +145,4 @@ async function getRelevantTopics() {
 
 module.exports.getIndex = getIndex;
 module.exports.getRelevantTopics = getRelevantTopics;
+module.exports.addToIndex = addToIndex;

@@ -20,9 +20,10 @@ global.fs = require('fs');                      // file management
 global.elasticlunr = require('elasticlunr');    // text search
 const Index = require('./index.js');            // building indices
 const Search = require('./search.js');          // searching
+const SO = require('./selforganise.js');        // self-organising
 global.Listener = require('./listener.js');     // listening to requests
 global.Publisher = require('./publisher.js');   // publishing requests
-global.cfg = require('./config.js');              // parameters and settings
+global.cfg = require('./config.js');            // parameters and settings
 
 // ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located
@@ -66,12 +67,13 @@ async function removePins() {
 (async () => {
   // housekeeping
   if (cfg.cleanPins) {await removePins();}
+  if (cfg.cleanPins && !cfg.removeIndex) {await Publisher.pinAll();}
   if (cfg.removeIndex) {
     log('Deleting Index files.');
     try {
       const contents = fs.readdirSync(`./${ipfs.host}/`);
       for (i in contents) {
-        if (await !fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
+        if (contents[i][0] === 'i' && !fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
           await fs.unlinkSync(`./${ipfs.host}/${contents[i]}`);
         }
       }
@@ -85,10 +87,9 @@ async function removePins() {
   for (i in subTopics) {
     await Listener.sub(subTopics[i]);
   }
-  // ask in other topics for files we can additionally host
-  // TODO ~~ Publisher.askFiles(topic);
-  // add those new files to ipfs and the index
-  // TODO ~~ Index.addToIndex(new files)
+  // clear old self-organised files
+  if (cfg.cleanSO) {await SO.clean();}
+  if (cfg.enableSO) {await SO.selforganise(subTopics, Index.addToIndex);}
   if (cfg.runQueries) {
     // send out queries to test the system
     setTimeout(() => {Search.searchTests()}, 5000); // Run some testing queries
