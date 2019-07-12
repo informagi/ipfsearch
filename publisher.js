@@ -67,7 +67,11 @@ async function unpinAll() {
  * get a file from the network
  */
 async function get(address, filepath) {
-  // TODO
+  return ipfs.cat(address)
+    .then((content) => {
+      fs.writeFileSync(filepath, content.toString('utf8'), (e) => {soLog(e);})
+    })
+    .catch((err) => {pLog(err);});
 }
 
 /*
@@ -115,6 +119,7 @@ module.exports.pubQuery = pubQuery;
 module.exports.pubAnswer = pubAnswer;
 module.exports.pubFileReq = pubFileReq;
 module.exports.pubFileRes = pubFileRes;
+module.exports.get = get;
 module.exports.pin = pin;
 module.exports.pinAll = pinAll;
 module.exports.unpinAll = unpinAll;
