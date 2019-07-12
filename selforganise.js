@@ -43,6 +43,26 @@ async function clean() {
 }
 
 /*
+ * pin, index and save new self-organised files
+ */
+async function addFiles(files, topic) {
+  // TODO so.json exists
+  const a = files.map(async (file) => {
+      const path = await Publisher.get(file.h, `./${ipfs.host}/${topics[0]}/${file.n}`);
+      return Index.addToIndex(topics[0], `./${ipfs.host}/${topics[0]}/${file.n}`, file.n);
+  });
+  // add to so.json
+  out = {}
+  out.docs = []
+  files.forEach((file) => {
+    const doc = {'hash': file.h, 'topic': topics[0], 'path': `./${ipfs.host}/${topics[0]}/${file.n}`};
+    out.docs.push(doc);
+  });
+  await fs.writeFileSync(`./${ipfs.host}/so.json`, JSON.stringify(out), (e) => {soLog(e);});
+  await Promise.all(a);
+}
+
+/*
  * find, pin and index new self-organised files
  */
 async function selforganise(topics, addToIndex) {
@@ -66,19 +86,7 @@ async function selforganise(topics, addToIndex) {
   const newFiles = Listener.stopListening(askIn, topics[0], true);
   // add those new files to ipfs and the index
   newFiles.splice(cfg.soSpace*totalFiles);
-  const a = newFiles.map(async (file) => {
-      const path = await Publisher.get(file.h, `./${ipfs.host}/${topics[0]}/${file.n}`);
-      return Index.addToIndex(topics[0], `./${ipfs.host}/${topics[0]}/${file.n}`, file.n);
-  });
-  // add to so.json
-  out = {}
-  out.docs = []
-  newFiles.forEach((file) => {
-    const doc = {'hash': file.h, 'topic': topics[0], 'path': `./${ipfs.host}/${topics[0]}/${file.n}`};
-    out.docs.push(doc);
-  });
-  await fs.writeFileSync(`./${ipfs.host}/so.json`, JSON.stringify(out), (e) => {soLog(e);});
-  await Promise.all(a);
+  await addFiles(newFiles, topics[0]);
   soLog(`Added ${newFiles.length} new files.`);
 }
 
