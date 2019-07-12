@@ -62,27 +62,15 @@ async function searchIndex(topic, query) {
  * search in the network
  */
 async function searchNetwork(topic, query) {
-  let ownerId = -1;
-  if (ipfsearch.subbedTopics.indexOf(topic) === -1) {
-    // sub to the topic
-    Listener.sub(topic, 0);
-    ownerId = 0;
-  } else if (ipfsearch.subOwners[topic] > -1) {
-    // sub is temporary; take over ownership
-    ownerId = ipfsearch.subOwners[topic] + 1;
-    ipfsearch.subOwners[topic] = ownerId;
-  }
+  const ownerId = Listener.sub(topic);
   // tell listener to catch results
   Listener.listenFor(topic, query);
   // ask the network
   Publisher.pubQuery(topic, query);
   // wait for an answer
   await util.timeout(3000);
-  // maybe unsub
-  if (ownerId > -1) {
-    // we extended the channel-subscription, cancel it
-    Listener.unsub(topic, ownerId);
-  }
+  // unsub
+  Listener.unsub(topic, ownerId);
   // gather results
   return Listener.stopListening(topic, query);
 }

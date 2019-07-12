@@ -52,16 +52,7 @@ async function selforganise(topics, addToIndex) {
   let askIn = util.choice(cfg.topics);
   while (askIn == topics[0]) askIn = util.choice(cfg.topics);
   // sub there
-  let ownerId = -1;
-  if (ipfsearch.subbedTopics.indexOf(askIn) === -1) {
-    // sub to the topic
-    ownerId = 0;
-    Listener.sub(askIn, ownerId);
-  } else if (ipfsearch.subOwners[askIn] > -1) {
-    // sub is temporary; take over ownership
-    ownerId = ipfsearch.subOwners[askIn] + 1;
-    ipfsearch.subOwners[askIn] = ownerId;
-  }
+  const ownerId = Listener.sub(askIn);
   // Listen for responses and ask
   Listener.listenFor(askIn, topics[0], true);
   Publisher.pubFileReq(askIn, topics[0])
@@ -70,11 +61,8 @@ async function selforganise(topics, addToIndex) {
   // count local files while waiting
   let totalFiles = await util.totalFiles();
   await t;
-  // maybe unsub
-  if (ownerId > -1) {
-    // we extended the channel-subscription, cancel it
-    Listener.unsub(askIn, ownerId);
-  }
+  // unsub
+  Listener.unsub(askIn, ownerId);
   const newFiles = Listener.stopListening(askIn, topics[0], true);
   // add those new files to ipfs and the index
   newFiles.splice(cfg.soSpace*totalFiles);
