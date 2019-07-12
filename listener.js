@@ -12,32 +12,44 @@ const lLog = function() {
 };
 
 /*
- * start keeping track of a specific query
+ * start keeping track of a specific query (or fileReq)
  */
-function listenFor(topic, query) {
-  if (ipfsearch.watchlist[topic] === undefined) {
-    ipfsearch.watchlist[topic] = [];
+function listenFor(topic, query, fileReq=false) {
+  let list = ipfsearch.watchlist.q;
+  let rlist = ipfsearch.results.q;
+  if (fileReq) {
+    list = ipfsearch.watchlist.f;
+    rlist = ipfsearch.results.f;
   }
-  if (ipfsearch.watchlist[topic].indexOf(query) > -1) {
+  if (list[topic] === undefined) {
+    list[topic] = [];
+  }
+  if (list[topic].indexOf(query) > -1) {
     return lLog(`Error: Already listening for ${query} on ${ipfsearch.topic}${topic}`);
   }
   // add to watchlist
-  ipfsearch.watchlist[topic].push(query);
-  if (ipfsearch.results[topic] === undefined) {
-    ipfsearch.results[topic] = {};
+  list[topic].push(query);
+  if (rlist[topic] === undefined) {
+    rlist[topic] = {};
   }
-  ipfsearch.results[topic][query] = [];
+  rlist[topic][query] = [];
 }
 
 /*
- * stop keeping track of a specific query
+ * stop keeping track of a specific query (or fileReq)
  */
-function stopListening(topic, query) {
+function stopListening(topic, query, fileReq=false) {
+  let list = ipfsearch.watchlist.q;
+  let rlist = ipfsearch.results.q;
+  if (fileReq) {
+    list = ipfsearch.watchlist.f;
+    rlist = ipfsearch.results.f;
+  }
   // remove from watchlist
-  ipfsearch.watchlist[topic].splice(ipfsearch.watchlist[topic].indexOf(query), 1);
+  list[topic].splice(list[topic].indexOf(query), 1);
   // return caught messages
-  const r = ipfsearch.results[topic][query].slice();
-  ipfsearch.results[topic][query] = undefined;
+  const r = rlist[topic][query].slice();
+  rlist[topic][query] = undefined;
   return r
 }
 

@@ -34,8 +34,8 @@ global.ipfsearch = {};                   // global object with search-related da
 ipfsearch.topic = 'ipfsearch-v0.1-';     // prefix for search channels
 ipfsearch.subbedTopics = [];             // topics we're subbed to
 ipfsearch.subOwners = {};                // keep track of who created a subscription
-ipfsearch.watchlist = [];                // the queries we pay attention to
-ipfsearch.results = {};                  // results caught while watching
+ipfsearch.watchlist = {'q': {}, 'f': {}};// the queries we pay attention to
+ipfsearch.results = {'q': {}, 'f': {}};  // results caught while watching
 
 // search
 global.indices = {};
