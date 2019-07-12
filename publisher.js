@@ -43,6 +43,34 @@ async function pinAll() {
 }
 
 /*
+ * Remove all pins
+ */
+async function unpinAll() {
+  await ipfs.pin.ls()
+    .then(async (pinset) => {
+      if (pinset.length > 0) {
+        pLog(`Removing pinset of length ${pinset.length}`);
+        const a = [];
+        pinset.forEach((p) => {
+          if (p.type != 'indirect') {
+            a.push(ipfs.pin.rm(p.hash));
+          }
+        });
+        await Promise.all(a);
+      }
+    })
+    .catch((err) => {log(err);});
+  pLog('Removed pinset.');
+}
+
+/*
+ * get a file from the network
+ */
+async function get(address, filepath) {
+  // TODO
+}
+
+/*
  * publish a message to network
  */
 function pub(channel, event, query, payload) {
@@ -89,3 +117,4 @@ module.exports.pubFileReq = pubFileReq;
 module.exports.pubFileRes = pubFileRes;
 module.exports.pin = pin;
 module.exports.pinAll = pinAll;
+module.exports.unpinAll = unpinAll;

@@ -42,48 +42,17 @@ ipfsearch.results = {'q': {}, 'f': {}};  // results caught while watching
 global.indices = {};
 
 /*
- * Remove all pins
- */
-async function removePins() {
-  await ipfs.pin.ls()
-    .then(async (pinset) => {
-      if (pinset.length > 0) {
-        log(`Removing pinset of length ${pinset.length}`);
-        const a = [];
-        pinset.forEach((p) => {
-          if (p.type != 'indirect') {
-            a.push(ipfs.pin.rm(p.hash));
-          }
-        });
-        await Promise.all(a);
-      }
-    })
-    .catch((err) => {log(err);});
-  log('Removed pinset.');
-}
-
-/*
  * 'Main' of the program
  */
 (async () => {
   // housekeeping
-  if (cfg.cleanPins) {await removePins();}
+  if (cfg.cleanPins) {await Publisher.unpinAll();}
   if (cfg.cleanPins && !cfg.removeIndex) {await Publisher.pinAll();}
-  if (cfg.removeIndex) {
-    log('Deleting Index files.');
-    try {
-      const contents = fs.readdirSync(`./${ipfs.host}/`);
-      for (i in contents) {
-        if (contents[i][0] === 'i' && !fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
-          await fs.unlinkSync(`./${ipfs.host}/${contents[i]}`);
-        }
-      }
-    } catch(e) { log(e); }
-  }
+  if (cfg.removeIndex) {await Index.removeIndex();}
   // make sure we can search our own files.
   await Index.getIndex();
   // subscribe to the topics we provide search on
-  const subTopics = await Index.getRelevantTopics();
+  const subTopics = await Search.getRelevantTopics();
   log(`Subscribing to ${subTopics.length} topic(s) ...`);
   for (i in subTopics) {
     await Listener.sub(subTopics[i]);

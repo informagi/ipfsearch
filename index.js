@@ -108,41 +108,20 @@ async function getIndex() {
 }
 
 /*
- * determine which channels to join
+ * delete all existing indices.
  */
-async function getRelevantTopics() {
-  if (cfg.maxChannels < 1) {
-    iLog(`Error: maxChannels too low (${cfg.maxChannels})`);
-  }
-  const contents = await fs.readdirSync(`./${ipfs.host}/`);
-  const counts = [];
-  await Promise.all(contents.map(async (content) => {
-    if (fs.statSync(`./${ipfs.host}/${content}`).isDirectory()) {
-      const files = await fs.readdirSync(`./${ipfs.host}/${content}/`);
-      counts.push({'t': content, 'c': files.length});
+async function removeIndex() {
+  log('Deleting Index files.');
+  try {
+    const contents = fs.readdirSync(`./${ipfs.host}/`);
+    for (i in contents) {
+      if (contents[i][0] === 'i' && !fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
+        await fs.unlinkSync(`./${ipfs.host}/${contents[i]}`);
+      }
     }
-  }));
-  let total = 0;
-  for (i in counts) {
-    total += counts[i].c;
-  }
-  iLog(`Hosting ${total} files ...`);
-  counts.sort((a,b) => {return b.c-a.c});
-  const r = [];
-  for (i in counts) {
-    if (counts[i].c >= total*cfg.topicThreshold) {
-      r.push(counts[i].t);
-    }
-    if (r.length >= cfg.maxChannels) {
-      break;
-    }
-  }
-  if (r.length === 0) {
-    iLog(`Error: topicThreshold (${cfg.topicThreshold}) not met for any topic.`);
-  }
-  return r;
+  } catch(e) { log(e); }
 }
 
 module.exports.getIndex = getIndex;
-module.exports.getRelevantTopics = getRelevantTopics;
 module.exports.addToIndex = addToIndex;
+module.exports.removeIndex = removeIndex;
