@@ -12,13 +12,6 @@ const sLog = function() {
 };
 
 /*
- * Wait for ms
- */
-function timeout(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/*
  * loads queries.json file if it exists
  * returns true if it is loaded, false otherwise
  */
@@ -84,7 +77,7 @@ async function searchNetwork(topic, query) {
   // ask the network
   Publisher.pubQuery(topic, query);
   // wait for an answer
-  await timeout(3000);
+  await util.timeout(3000);
   // maybe unsub
   if (ownerId > -1) {
     // we extended the channel-subscription, cancel it

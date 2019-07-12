@@ -24,6 +24,7 @@ const SO = require('./selforganise.js');        // self-organising
 global.Listener = require('./listener.js');     // listening to requests
 global.Publisher = require('./publisher.js');   // publishing requests
 global.cfg = require('./config.js');            // parameters and settings
+global.util = require('./util.js');             // utility functions
 
 // ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located

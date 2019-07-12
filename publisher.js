@@ -83,18 +83,6 @@ function pubFileRes(topic, request, results) {
   return pub(topic, 'fileRes', request, results)
 }
 
-/*
- * remove duplicates from a list
- */
-function uniquify(list) {
-  let uniqueArray = list.filter(
-    (object, index) =>
-      index ===
-      list.findIndex(obj => JSON.stringify(obj) === JSON.stringify(object))
-  );
-  return uniqueArray;
-}
-
 module.exports.pubQuery = pubQuery;
 module.exports.pubAnswer = pubAnswer;
 module.exports.pubFileReq = pubFileReq;
