@@ -111,7 +111,7 @@ async function getIndex() {
  * delete all existing indices.
  */
 async function removeIndex() {
-  log('Deleting Index files.');
+  iLog('Deleting Index files.');
   try {
     const contents = fs.readdirSync(`./${ipfs.host}/`);
     for (i in contents) {
