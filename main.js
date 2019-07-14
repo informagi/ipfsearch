@@ -65,7 +65,7 @@ global.searchLocal = Search.searchIndex;
   if (cfg.enableSO) {await SO.selforganise(subTopics, Index.addToIndex);}
   if (cfg.runQueries) {
     // send out queries to test the system
-    setTimeout(() => {Search.searchTests()}, 5000); // Run some testing queries
+    setTimeout(() => {Search.searchTests()}, cfg.searchTestWait); // Run some testing queries
   } else {
     log('Not running queries, so we\'re pretty much done here.');
   }
