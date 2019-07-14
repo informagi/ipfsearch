@@ -67,7 +67,9 @@ const receiveMsg = async (msg) => {
   if (data.event === 'query') {
     if (ipfsearch.subOwners[topic] !== undefined && ipfsearch.subOwners[topic].indexOf(0) > -1) {
       const searchResults = await searchLocal(topic, data.query);
-      Publisher.pubAnswer(topic, data.query, searchResults);
+      if (searchResults.length > 0) {
+        Publisher.pubAnswer(topic, data.query, searchResults);
+      }
     }
     return;
   }
@@ -79,10 +81,20 @@ const receiveMsg = async (msg) => {
     return;
   }
   if (data.event === 'fileReq') {
-    //
+    if (true || ipfsearch.subOwners[data.query] === undefined || ipfsearch.subOwners[data.query].indexOf(0) === -1) {
+      const files = await offerFiles(data.query);
+      if (files.length > 0) {
+        Publisher.pubFileRes(topic, data.query, files);
+      }
+    }
+    return;
   }
   if (data.event === 'fileRes') {
-    //
+    if (ipfsearch.watchlist.f[topic] !== undefined && ipfsearch.watchlist.f[topic].indexOf(data.query) > -1) {
+      let rlist = ipfsearch.results.f;
+      rlist[topic][data.query] = util.uniquify(rlist[topic][data.query].concat(data.payload));
+    }
+    return;
   }
 };
 
@@ -133,6 +145,7 @@ function unsub(topic, owner) {
  * Unsubscribes from all channels (in the subbedTopics array)
  */
 async function unsubAll() {
+  lLog('Unsubscribing all channels...');
   await Promise.all(ipfsearch.subbedTopics.map((topic) => { return unsub(topic, -1); }));
   if (ipfsearch.subbedTopics.length === 0) return;
   lLog('Error: Did not unsubscribe from all channels.');

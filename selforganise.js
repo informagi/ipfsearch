@@ -48,14 +48,14 @@ async function clean() {
 async function addFiles(files, topic) {
   // TODO so.json exists
   const a = files.map(async (file) => {
-      const path = await Publisher.get(file.h, `./${ipfs.host}/${topics[0]}/${file.n}`);
-      return Index.addToIndex(topics[0], `./${ipfs.host}/${topics[0]}/${file.n}`, file.n);
+    await Publisher.get(file.h, `./${ipfs.host}/${topic}/${file.n}`);
+    return filesToIndex(indices[topic], `./${ipfs.host}/${topic}/${file.n}`, file.n);
   });
   // add to so.json
   out = {}
   out.docs = []
   files.forEach((file) => {
-    const doc = {'hash': file.h, 'topic': topics[0], 'path': `./${ipfs.host}/${topics[0]}/${file.n}`};
+    const doc = {'hash': file.h, 'topic': topic, 'path': `./${ipfs.host}/${topic}/${file.n}`};
     out.docs.push(doc);
   });
   await fs.writeFileSync(`./${ipfs.host}/so.json`, JSON.stringify(out), (e) => {soLog(e);});
@@ -72,23 +72,45 @@ async function selforganise(topics, addToIndex) {
   let askIn = util.choice(cfg.topics);
   while (askIn == topics[0]) askIn = util.choice(cfg.topics);
   // sub there
-  const ownerId = Listener.sub(askIn);
+  const ownerId = await Listener.sub(askIn);
   // Listen for responses and ask
-  Listener.listenFor(askIn, topics[0], true);
-  Publisher.pubFileReq(askIn, topics[0])
+  await Listener.listenFor(askIn, topics[0], true);
+  await Publisher.pubFileReq(askIn, topics[0])
   // wait for an answer
   const t = util.timeout(cfg.fileWait);
   // count local files while waiting
-  let totalFiles = await util.totalFiles();
+  const totalFiles = await util.totalFiles();
   await t;
   // unsub
   Listener.unsub(askIn, ownerId);
   const newFiles = Listener.stopListening(askIn, topics[0], true);
   // add those new files to ipfs and the index
+  // TODO ~~ shuffle(newFiles)
+  // only add up to the maximum
   newFiles.splice(cfg.soSpace*totalFiles);
   await addFiles(newFiles, topics[0]);
   soLog(`Added ${newFiles.length} new files.`);
+  // TODO ~~ added not enough files
+}
+
+/*
+ * find files to offer to other nodes
+ */
+async function filesToOffer(topic) {
+  const path = `./${ipfs.host}/${topic}`;
+  // if path exists
+  try {
+    fs.statSync(path);
+  } catch (e) {return [];}
+  const files = fs.readdirSync(path);
+  return Promise.all(files.map(async (file) => {
+    const n = file;
+    const filedata = fs.readFileSync(`${path}/${file}`, 'utf8');
+    const h = await Publisher.hash(filedata);
+    return {h, n}
+  }));
 }
 
 module.exports.clean = clean;
 module.exports.selforganise = selforganise;
+module.exports.filesToOffer = filesToOffer;

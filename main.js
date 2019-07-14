@@ -43,6 +43,9 @@ global.indices = {};
 
 // used by Listener.receiveMsg
 global.searchLocal = Search.searchIndex;
+global.offerFiles = SO.filesToOffer;
+// used by SO.addFiles
+global.filesToIndex = Index.addToIndex;
 
 /*
  * 'Main' of the program
@@ -60,6 +63,7 @@ global.searchLocal = Search.searchIndex;
   for (i in subTopics) {
     await Listener.sub(subTopics[i]);
   }
+  await util.timeout(cfg.soWait);
   // clear old self-organised files
   if (cfg.cleanSO) {await SO.clean();}
   if (cfg.enableSO) {await SO.selforganise(subTopics, Index.addToIndex);}
