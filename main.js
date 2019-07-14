@@ -51,6 +51,9 @@ global.filesToIndex = Index.addToIndex;
  * 'Main' of the program
  */
 (async () => {
+  // start timers
+  const soTO = util.timeout(cfg.soWait);
+  const stTO = util.timeout(cfg.soWait + cfg.searchTestWait);
   // housekeeping
   if (cfg.cleanPins) {await Publisher.unpinAll();}
   if (cfg.cleanPins && !cfg.removeIndex) {await Publisher.pinAll();}
@@ -63,13 +66,14 @@ global.filesToIndex = Index.addToIndex;
   for (i in subTopics) {
     await Listener.sub(subTopics[i]);
   }
-  await util.timeout(cfg.soWait);
+  if (cfg.cleanSO || cfg.enableSO) { await soTO; }
   // clear old self-organised files
   if (cfg.cleanSO) {await SO.clean();}
   if (cfg.enableSO) {await SO.selforganise(subTopics, Index.addToIndex);}
   if (cfg.runQueries) {
     // send out queries to test the system
-    setTimeout(() => {Search.searchTests()}, cfg.searchTestWait); // Run some testing queries
+    await stTO;
+    Search.searchTests()
   } else {
     log('Not running queries, so we\'re pretty much done here.');
   }
