@@ -20,6 +20,15 @@ async function pin(filedata) {
 }
 
 /*
+ * get hash of file
+ */
+async function hash(filedata) {
+  const content = ipfs.Buffer.from(filedata);
+  const r = await ipfs.add(content, {onlyHash: true});
+  return r[0].hash;
+}
+
+/*
  * pin all files to the network
  */
 async function pinAll() {
@@ -123,6 +132,7 @@ module.exports.pubAnswer = pubAnswer;
 module.exports.pubFileReq = pubFileReq;
 module.exports.pubFileRes = pubFileRes;
 module.exports.get = get;
+module.exports.hash = hash;
 module.exports.pin = pin;
 module.exports.pinAll = pinAll;
 module.exports.unpinAll = unpinAll;
