@@ -29,6 +29,13 @@ async function hash(filedata) {
 }
 
 /*
+ * unpin file from network
+ */
+async function unpin(hash) {
+  return ipfs.pin.rm(hash);
+}
+
+/*
  * pin all files to the network
  */
 async function pinAll() {
@@ -134,5 +141,6 @@ module.exports.pubFileRes = pubFileRes;
 module.exports.get = get;
 module.exports.hash = hash;
 module.exports.pin = pin;
+module.exports.unpin = unpin;
 module.exports.pinAll = pinAll;
 module.exports.unpinAll = unpinAll;
