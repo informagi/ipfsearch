@@ -68,7 +68,7 @@ async function searchNetwork(topic, query) {
   // ask the network
   Publisher.pubQuery(topic, query);
   // wait for an answer
-  await util.timeout(3000);
+  await util.timeout(cfg.searchWait);
   // unsub
   Listener.unsub(topic, ownerId);
   // gather results
@@ -86,8 +86,10 @@ async function search(query, score) {
   if (results.length > 0 && results[0].score >= score) {
     sLog(`Local results for '${query}' were sufficient.`);
   } else {
-    sLog(`Local results for '${query}' insufficient, asking the network ...`);
+    const before = results.length;
+    sLog(`Local results (${before}) for '${query}' insufficient, asking the network ...`);
     results = results.concat(await searchNetwork(topic, query));
+    sLog(`Received ${results.length - before} additional results from the network`);
   }
   return results;
 }
@@ -145,6 +147,7 @@ async function getRelevantTopics() {
   return r;
 }
 
+module.exports.searchIndex = searchIndex;
 module.exports.search = search;
 module.exports.searchTests = searchTests;
 module.exports.getRelevantTopics = getRelevantTopics;

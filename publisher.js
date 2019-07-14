@@ -80,7 +80,6 @@ async function get(address, filepath) {
 function pub(channel, event, query, payload) {
   const msgEncoded = ipfs.Buffer.from(JSON.stringify({ event, query, payload }));
   return ipfs.pubsub.publish(`${ipfsearch.topic}${channel}`, msgEncoded)
-    .then(() => pLog(`Published ${event} in channel ${ipfsearch.topic}${channel}`))
     .catch(err => {
       pLog(`Error: Failed to publish ${event} to channel ${ipfsearch.topic}${channel}`);
       pLog(err);
@@ -91,6 +90,7 @@ function pub(channel, event, query, payload) {
  * publish query to network
  */
 function pubQuery(topic, query) {
+  pLog(`(${topic}) Asking for ${query}...`);
   return pub(topic, 'query', query, '')
 }
 
@@ -98,6 +98,7 @@ function pubQuery(topic, query) {
  * publish answer to network
  */
 function pubAnswer(topic, query, results) {
+  pLog(`(${topic}) Answering with ${results.length} to ${query}...`);
   return pub(topic, 'answer', query, results)
 }
 
@@ -105,6 +106,7 @@ function pubAnswer(topic, query, results) {
  * publish request for files to network
  */
 function pubFileReq(topic, request) {
+  pLog(`(${topic}) Requesting files for ${request}...`);
   return pub(topic, 'fileReq', request, '')
 }
 
@@ -112,6 +114,7 @@ function pubFileReq(topic, request) {
  * publish response to request for files to network
  */
 function pubFileRes(topic, request, results) {
+  pLog(`(${topic}) ${results.length} files for ${request}...`);
   return pub(topic, 'fileRes', request, results)
 }
 

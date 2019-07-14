@@ -41,6 +41,9 @@ ipfsearch.results = {'q': {}, 'f': {}};  // results caught while watching
 // search
 global.indices = {};
 
+// used by Listener.receiveMsg
+global.searchLocal = Search.searchIndex;
+
 /*
  * 'Main' of the program
  */
@@ -66,6 +69,8 @@ global.indices = {};
   } else {
     log('Not running queries, so we\'re pretty much done here.');
   }
+  await util.timeout(cfg.exitWait);
+  exitHandler({cleanup: true});
 })();
 
 /*

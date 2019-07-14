@@ -57,12 +57,33 @@ function stopListening(topic, query, fileReq=false) {
  * called on received messages.
  * Just prints them.
  */
-const receiveMsg = msg => {
+const receiveMsg = async (msg) => {
+  const us = await ipfs.id();
+  if (msg.from === us.id) {
+    return;  // Ignoring our own messages
+  }
   const data = JSON.parse(msg.data.toString());
-  // TODO
-  lLog(`I received ${data.event} for: ${data.query}`);
-  // lLog(`The payload is:`);
-  // lLog(data.payload);
+  const topic = msg.topicIDs[0].substr(ipfsearch.topic.length);
+  if (data.event === 'query') {
+    if (ipfsearch.subOwners[topic] !== undefined && ipfsearch.subOwners[topic].indexOf(0) > -1) {
+      const searchResults = await searchLocal(topic, data.query);
+      Publisher.pubAnswer(topic, data.query, searchResults);
+    }
+    return;
+  }
+  if (data.event === 'answer') {
+    if (ipfsearch.watchlist.q[topic] !== undefined && ipfsearch.watchlist.q[topic].indexOf(data.query) > -1) {
+      let rlist = ipfsearch.results.q;
+      rlist[topic][data.query] = util.uniquify(rlist[topic][data.query].concat(data.payload));
+    }
+    return;
+  }
+  if (data.event === 'fileReq') {
+    //
+  }
+  if (data.event === 'fileRes') {
+    //
+  }
 };
 
 /*
@@ -104,7 +125,7 @@ function unsub(topic, owner) {
       .then(() => {
         ipfsearch.subbedTopics.splice(ipfsearch.subbedTopics.indexOf(topic), 1);
         lLog(`Unsubscibed from channel ${ipfsearch.topic}${topic}`)})
-      .catch(e => { lLog(`Error: ${e}`); });
+      .catch(e => { lLog(`Couldn't unsub: ${e}`); });
   }
 }
 

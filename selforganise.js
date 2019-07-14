@@ -77,7 +77,7 @@ async function selforganise(topics, addToIndex) {
   Listener.listenFor(askIn, topics[0], true);
   Publisher.pubFileReq(askIn, topics[0])
   // wait for an answer
-  const t = util.timeout(3000);
+  const t = util.timeout(cfg.fileWait);
   // count local files while waiting
   let totalFiles = await util.totalFiles();
   await t;
