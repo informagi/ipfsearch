@@ -30,17 +30,14 @@ function choice(a) {
 async function totalFiles() {
   let r = 0;
   const a = [];
-  const contents = fs.readdirSync(`./${ipfs.host}/`);
-  for (i in contents) {
-    const path = `./${ipfs.host}/${contents[i]}`;
-    if (fs.statSync(path).isDirectory()) {
-      a.push(async () => {
-        const files = await fs.readdirSync(path);
-        r += files.length;
-      });
+  const contents = await fs.readdirSync(`./${ipfs.host}/`);
+  await Promise.all(contents.map(async(content) => {
+    const path = `./${ipfs.host}/${content}`;
+    if (await fs.statSync(path).isDirectory()) {
+      const files = await fs.readdirSync(path);
+      r += files.length;
     }
-  }
-  await Promise.all(a);
+  }));
   return r;
 }
 
