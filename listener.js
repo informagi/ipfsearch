@@ -81,7 +81,7 @@ const receiveMsg = async (msg) => {
     return;
   }
   if (data.event === 'fileReq') {
-    if (true || ipfsearch.subOwners[data.query] === undefined || ipfsearch.subOwners[data.query].indexOf(0) === -1) {
+    if (ipfsearch.subOwners[data.query] === undefined || ipfsearch.subOwners[data.query].indexOf(0) === -1) {
       const files = await offerFiles(data.query);
       if (files.length > 0) {
         Publisher.pubFileRes(topic, data.query, files);
