@@ -103,11 +103,12 @@ const receiveMsg = async (msg) => {
  * returns ownerId to keep track of temporary channels
  */
 async function sub(topic) {
-  if (ipfsearch.subbedTopics.indexOf(topic) > -1) {
+  topic = String(topic);
+  if (ipfsearch.subbedTopics.indexOf(topic) > -1 && ipfsearch.subOwners[topic].length > 0) {
     const tOwners = ipfsearch.subOwners[topic];
     const id = tOwners[tOwners.length - 1] + 1
     tOwners.push(id)
-    lLog(`Already listening on channel ${ipfsearch.topic}${topic}`);
+    lLog(`Already listening on channel ${ipfsearch.topic}${topic}, id: ${id}`);
     return id;
   }
   await ipfs.pubsub.subscribe(`${ipfsearch.topic}${topic}`, receiveMsg)
@@ -126,10 +127,11 @@ async function sub(topic) {
  * unsubscribe from a topic
  */
 function unsub(topic, owner) {
+  topic = String(topic);
   const tOwners = ipfsearch.subOwners[topic];
   if (owner === -1) {
     while (tOwners.length > 0) tOwners.pop();
-  } else {
+  } else if (tOwners.indexOf(owner) >= 0) {
     tOwners.splice(tOwners.indexOf(owner), 1);
   }
   if (tOwners.length < 1) {

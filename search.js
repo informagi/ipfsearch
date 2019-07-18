@@ -70,7 +70,7 @@ async function searchNetwork(topic, query) {
   // wait for an answer
   await util.timeout(cfg.searchWait);
   // unsub
-  Listener.unsub(topic, ownerId);
+  await Listener.unsub(topic, ownerId);
   // gather results
   return Listener.stopListening(topic, query);
 }
