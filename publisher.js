@@ -107,6 +107,7 @@ function pub(channel, event, query, payload) {
  */
 function pubQuery(topic, query) {
   pLog(`(${topic}) Asking for ${query}...`);
+  stats.searchSent += 1;
   return pub(topic, 'query', query, '')
 }
 
@@ -115,6 +116,7 @@ function pubQuery(topic, query) {
  */
 function pubAnswer(topic, query, results) {
   pLog(`(${topic}) Answering with ${results.length} to ${query}...`);
+  stats.searchSent += 1;
   return pub(topic, 'answer', query, results)
 }
 
@@ -123,6 +125,7 @@ function pubAnswer(topic, query, results) {
  */
 function pubFileReq(topic, request) {
   pLog(`(${topic}) Requesting files for ${request}...`);
+  stats.soSent += 1;
   return pub(topic, 'fileReq', request, '')
 }
 
@@ -131,6 +134,7 @@ function pubFileReq(topic, request) {
  */
 function pubFileRes(topic, request, results) {
   pLog(`(${topic}) ${results.length} files for ${request}...`);
+  stats.soSent += 1;
   return pub(topic, 'fileRes', request, results)
 }
 

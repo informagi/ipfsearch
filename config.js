@@ -1,9 +1,9 @@
 // quick options
-module.exports.cleanPins = false;     // clear all the pins on this ipfs node
-module.exports.removeIndex = false;   // remove the index.json
+module.exports.cleanPins = true;      // clear all the pins on this ipfs node
+module.exports.removeIndex = true;    // remove the index.json
 module.exports.cleanSO = true;        // clear the self-organised space
 module.exports.enableSO = true;       // manage self-organised space
-module.exports.runQueries = false;    // search for documents
+module.exports.runQueries = true;     // search for documents
 // parameters
 module.exports.topics = [0,1,2,3];    // topics that exist
 module.exports.topicThreshold = 0.3;  // topic-files > total*this -> join channel

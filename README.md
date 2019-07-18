@@ -80,5 +80,8 @@ Determines where to search (local or network, which topic) and searches.
 ### ```selforganise.js```
 Manage the self-organised files: Retrieve and delete them.
 
+### ```stats.js```
+Exports all statistics.
+
 ### ```util.js```
 Small utility functions.

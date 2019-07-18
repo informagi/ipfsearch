@@ -25,6 +25,7 @@ global.Listener = require('./listener.js');     // listening to requests
 global.Publisher = require('./publisher.js');   // publishing requests
 global.cfg = require('./config.js');            // parameters and settings
 global.util = require('./util.js');             // utility functions
+const Stats = require('./stats.js');            // exporting stats
 
 // ipfs
 const host = process.argv[2] || 'ipfs0'; // where ipfs/the api is located
@@ -37,6 +38,18 @@ ipfsearch.subbedTopics = [];             // topics we're subbed to
 ipfsearch.subOwners = {};                // keep track of who created a subscription
 ipfsearch.watchlist = {'q': {}, 'f': {}};// the queries we pay attention to
 ipfsearch.results = {'q': {}, 'f': {}};  // results caught while watching
+
+// stats
+global.stats = {};                       // global object with stat-related data
+stats.soSent = 0;                        // Published so-msgs
+stats.soReceived = 0;                    // Received so-msgs
+stats.searchSent = 0;                    // Published search-msgs
+stats.searchReceived = 0;                // Received search-msgs
+stats.droppedMsg = 0;                    // Received and then dropped msgs
+stats.queries = 0;                       // Queries we ask
+stats.localSearches = 0;                 // Searches on an index
+stats.onlineSearches = 0;                // Searches on the network
+stats.searches = [];                     // searches and their results
 
 // search
 global.indices = {};
@@ -85,6 +98,7 @@ global.filesToIndex = Index.addToIndex;
  * this exitHandler handles what should happen on program.close
  */
 async function exitHandler(options, exitCode) {
+  await Stats.saveStats();
   if (options.cleanup) {
     await Listener.unsubAll();
     log('Clean exit. Goodbye.')

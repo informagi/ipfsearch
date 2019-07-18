@@ -65,34 +65,46 @@ const receiveMsg = async (msg) => {
   const data = JSON.parse(msg.data.toString());
   const topic = msg.topicIDs[0].substr(ipfsearch.topic.length);
   if (data.event === 'query') {
+    stats.searchReceived += 1;
     if (ipfsearch.subOwners[topic] !== undefined && ipfsearch.subOwners[topic].indexOf(0) > -1) {
       const searchResults = await searchLocal(topic, data.query);
       if (searchResults.length > 0) {
         Publisher.pubAnswer(topic, data.query, searchResults);
       }
+    } else {
+      stats.droppedMsg += 1;
     }
     return;
   }
   if (data.event === 'answer') {
+    stats.searchReceived += 1;
     if (ipfsearch.watchlist.q[topic] !== undefined && ipfsearch.watchlist.q[topic].indexOf(data.query) > -1) {
       let rlist = ipfsearch.results.q;
       rlist[topic][data.query] = util.uniquify(rlist[topic][data.query].concat(data.payload));
+    } else {
+      stats.droppedMsg += 1;
     }
     return;
   }
   if (data.event === 'fileReq') {
+    stats.soReceived += 1;
     if (ipfsearch.subOwners[data.query] === undefined || ipfsearch.subOwners[data.query].indexOf(0) === -1) {
       const files = await offerFiles(data.query);
       if (files.length > 0) {
         Publisher.pubFileRes(topic, data.query, files);
       }
+    } else {
+      stats.droppedMsg += 1;
     }
     return;
   }
   if (data.event === 'fileRes') {
+    stats.soReceived += 1;
     if (ipfsearch.watchlist.f[topic] !== undefined && ipfsearch.watchlist.f[topic].indexOf(data.query) > -1) {
       let rlist = ipfsearch.results.f;
       rlist[topic][data.query] = util.uniquify(rlist[topic][data.query].concat(data.payload));
+    } else {
+      stats.droppedMsg += 1;
     }
     return;
   }

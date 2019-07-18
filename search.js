@@ -55,6 +55,7 @@ async function searchIndex(topic, query) {
     // we don't have that topic locally
     return [];
   }
+  stats.localSearches += 1;
   return global.indices[topic].search(query);
 }
 
@@ -62,6 +63,7 @@ async function searchIndex(topic, query) {
  * search in the network
  */
 async function searchNetwork(topic, query) {
+  stats.onlineSearches += 1;
   const ownerId = Listener.sub(topic);
   // tell listener to catch results
   Listener.listenFor(topic, query);
@@ -80,6 +82,7 @@ async function searchNetwork(topic, query) {
  */
 async function search(query, score) {
   sLog(`Searching '${query}' with a minimum score of ${score} ...`);
+  stats.queries += 1;
   // search locally
   const topic = await getTopic(query);
   let results = await searchIndex(topic, query);
@@ -101,13 +104,14 @@ async function searchTests() {
   if (!await loadQueries()) {
     return; // no queries to do
   }
-  const searches = ipfsearch.queries.queries.map(q => {
-    return search(q.q, q.s);
+  const searches = ipfsearch.queries.queries.map(async q => {
+    const r = await search(q.q, q.s);
+    stats.searches.push({'q': q.q, 's': q.s, 'r': r});
+    return r;
   });
   await Promise.all(searches)
     .then(results => {
       sLog('Searches finished.');
-      sLog(results);
     });
 }
 
