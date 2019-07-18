@@ -24,6 +24,20 @@ function choice(a) {
   return a[Math.floor(Math.random() * a.length)];
 }
 
+/**
+ * shuffle an array in place.
+ */
+function shuffle(a) {
+    let j, x, i;
+    for (let i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
+}
+
 /*
  * count total files we're hosting
  */
@@ -44,4 +58,5 @@ async function totalFiles() {
 module.exports.timeout = timeout;
 module.exports.uniquify = uniquify;
 module.exports.choice = choice;
+module.exports.shuffle = shuffle;
 module.exports.totalFiles = totalFiles;

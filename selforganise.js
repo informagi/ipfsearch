@@ -46,14 +46,19 @@ async function clean() {
  * pin, index and save new self-organised files
  */
 async function addFiles(files, topic) {
-  // TODO so.json exists
   const a = files.map(async (file) => {
     await Publisher.get(file.h, `./${ipfs.host}/${topic}/${file.n}`);
     return filesToIndex(indices[topic], `./${ipfs.host}/${topic}/${file.n}`, file.n);
   });
   // add to so.json
-  out = {}
-  out.docs = []
+  let out = {};
+  try {
+    await fs.statSync(`./${ipfs.host}/so.json`);
+    out = JSON.parse(await fs.readFileSync(`./${ipfs.host}/so.json`));
+  } catch (e) {
+    out = {}
+    out.docs = []
+  }
   files.forEach((file) => {
     const doc = {'hash': file.h, 'topic': topic, 'path': `./${ipfs.host}/${topic}/${file.n}`};
     out.docs.push(doc);
@@ -65,9 +70,25 @@ async function addFiles(files, topic) {
 /*
  * find, pin and index new self-organised files
  */
-async function selforganise(topics, addToIndex) {
-  // TODO so.json exists
-  soLog('Organising some files ...');
+async function selforganise(topics, addToIndex, tries=2) {
+  if (tries <= 0) {return;}
+  // find out how many files we need
+  let neededFiles = 0;
+  // count local files
+  const totalFiles = await util.totalFiles();
+  try {
+    await fs.statSync(`./${ipfs.host}/so.json`);
+    const saved = JSON.parse(await fs.readFileSync(`./${ipfs.host}/so.json`));
+    neededFiles = cfg.soSpace * (totalFiles - saved.docs.length);
+    neededFiles -= saved.docs.length;
+  } catch (e) {
+    neededFiles = cfg.soSpace * totalFiles;
+  }
+  neededFiles = Math.floor(neededFiles);
+  if (neededFiles <= 0) {
+    return soLog('Nothing to self-organise.');
+  }
+  soLog(`Organising ${neededFiles} files ...`);
   // ask in other topics for files we can additionally host
   let askIn = util.choice(cfg.topics);
   while (askIn == topics[0]) askIn = util.choice(cfg.topics);
@@ -77,20 +98,20 @@ async function selforganise(topics, addToIndex) {
   await Listener.listenFor(askIn, topics[0], true);
   await Publisher.pubFileReq(askIn, topics[0])
   // wait for an answer
-  const t = util.timeout(cfg.fileWait);
-  // count local files while waiting
-  const totalFiles = await util.totalFiles();
-  await t;
+  await util.timeout(cfg.fileWait);
   // unsub
-  Listener.unsub(askIn, ownerId);
+  await Listener.unsub(askIn, ownerId);
   const newFiles = Listener.stopListening(askIn, topics[0], true);
   // add those new files to ipfs and the index
-  // TODO ~~ shuffle(newFiles)
+  util.shuffle(newFiles);
   // only add up to the maximum
-  newFiles.splice(cfg.soSpace*totalFiles);
+  newFiles.splice(neededFiles);
   await addFiles(newFiles, topics[0]);
   soLog(`Added ${newFiles.length} new files.`);
-  // TODO ~~ added not enough files
+  // not enough files added
+  if (newFiles.length < neededFiles) {
+    await selforganise(topics, addToIndex, tries-1);
+  }
 }
 
 /*
