@@ -52,7 +52,8 @@ stats.onlineSearches = 0;                // Searches on the network
 stats.searches = [];                     // searches and their results
 
 // search
-global.indices = {};
+global.indices = {};                     // Search indices
+global.hashes = {};                      // Hash-Filename pairs
 
 // used by Listener.receiveMsg
 global.searchLocal = Search.searchIndex;
@@ -83,6 +84,7 @@ global.filesToIndex = Index.addToIndex;
   // clear old self-organised files
   if (cfg.cleanSO) {await SO.clean();}
   if (cfg.enableSO) {await SO.selforganise(subTopics, Index.addToIndex);}
+  await Index.saveHashes();
   if (cfg.runQueries) {
     // send out queries to test the system
     await stTO;

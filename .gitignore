@@ -2,7 +2,7 @@
 # Data
 Data/dump*
 Data/extracted*
-Data/enwiki*
+Data/*.bz2
 Data/corpus*
 # Runtime data
 ipfs*/

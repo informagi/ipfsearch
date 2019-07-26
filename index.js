@@ -50,6 +50,8 @@ async function addToIndex(index, filepath, filename) {
     const r = await Publisher.pin(filedata);
     // put object into index
     const obj = new Obj(r[0].hash, filename, filedata);
+    // add to hashes-table 
+    global.hashes[obj.hash] = obj.file;
     index.addDoc(obj);
   } catch (error) {
     iLog(`Error : File ${filename} has not been added to the index`);
@@ -64,6 +66,15 @@ async function addToIndex(index, filepath, filename) {
 async function saveIndex(index, path) {
   iLog(`Saving index${path.substr(path.indexOf('x') + 1, path.length - path.indexOf('j')-2)} to disk.`);
   fs.writeFileSync(path, JSON.stringify(index), function(error) {
+    if (error) { iLog(error); }
+  });
+}
+
+/*
+ * saves an index to a file
+ */
+async function saveHashes() {
+  fs.writeFileSync(`./${ipfs.host}/hashes.json`, JSON.stringify(global.hashes), function(error) {
     if (error) { iLog(error); }
   });
 }
@@ -125,3 +136,4 @@ async function removeIndex() {
 module.exports.getIndex = getIndex;
 module.exports.addToIndex = addToIndex;
 module.exports.removeIndex = removeIndex;
+module.exports.saveHashes = saveHashes;

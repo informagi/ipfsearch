@@ -61,6 +61,7 @@ Some also provide information to the nodes about the system they are in (e.g. `t
 
 ### ```index.js```
 Handles the indices for local search: It builds, saves, loads and deletes the indices.
+It also keeps track of which hash belongs to which file.
 
 ### ```listener.js```
 Subscribes and unsubscribes to/from channels.
