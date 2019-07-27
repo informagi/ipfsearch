@@ -24,7 +24,7 @@ parser.add_argument("-i", "--input", default="./dump",
 parser.add_argument("-o", "--output", default="../",
                     help="Output-folder, default: ../")
 parser.add_argument("mode", nargs='?', default="Random",
-                    help="How to cluster the documents: 'Random', 'LDA', 'loadLDA'")
+                    help="How to cluster the documents: 'Random', 'LDA', 'loadLDA', 'None'")
 args = parser.parse_args()
 
 # Check for early fail condition
@@ -43,13 +43,16 @@ elif args.maxfiles > 5000:
 if args.nodes < 1:
     print('ERROR: NODES < 1 (' + args.nodes + ')')
     sys.exit(1)
+if args.mode not in ['Random', 'LDA', 'loadLDA', 'None']:
+    print(f"ERROR: Unknown mode of sharding: {args.mode}")
+    sys.exit(4)
 if not os.path.exists(f"{args.output}/"):
     print(f"ERROR: Out-Folder {args.output}/ not found.")
     sys.exit(3)
 if not os.path.exists(f"{args.input}/"):
     print(f"ERROR: Folder {args.input}/ not found.")
     sys.exit(2)
-if len([f for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f))]) < 1:
+if len([f for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f))]) < 1 and args.mode != 'None':
     print(f"ERROR: No files in {args.input}/ found.")
     sys.exit(2)
 
@@ -143,16 +146,24 @@ def distributeFiles(numFiles):
                     topic = choice([t for t in os.listdir(args.input)])
 
 
-numFiles = len([f for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f))])
-print(f"Sorting {numFiles} files into {args.topics} topics using {args.mode}.")
-print(f"Then distributing them to {args.nodes} peers with homogeneity {args.homogeneity}.")
-sys.stdout.flush()
-model, dct = trainModel()
-print(f"{args.mode} model trained.")
-sys.stdout.flush()
-shardFiles(model, dct)
-print(f"Files sorted.")
-sys.stdout.flush()
+if args.mode != 'None':
+    numFiles = len([f for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f))])
+    print(f"Sorting {numFiles} files into {args.topics} topics using {args.mode}.")
+    print(f"Then distributing them to {args.nodes} peers with homogeneity {args.homogeneity}.")
+    sys.stdout.flush()
+    model, dct = trainModel()
+    print(f"{args.mode} model trained.")
+    sys.stdout.flush()
+    shardFiles(model, dct)
+    print(f"Files sorted.")
+    sys.stdout.flush()
+else:
+    topicFolders = [os.path.join(args.input, f) for f in os.listdir(args.input) if not os.path.isfile(os.path.join(args.input, f))]
+    numFiles = 0
+    for folder in topicFolders:
+        numFiles += len([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))])
+    print(f"{numFiles} Files were already sorted.")
+    sys.stdout.flush()
 distributeFiles(numFiles)
 print(f"Files distributed.")
 sys.stdout.flush()
