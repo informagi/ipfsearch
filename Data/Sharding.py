@@ -21,6 +21,8 @@ parser.add_argument("-m", "--maxfiles", type=int, default=2000,
                     help="Maximum files per node, default: 2000")
 parser.add_argument("-i", "--input", default="./dump",
                     help="Input-folder, default: ./dump")
+parser.add_argument("-o", "--output", default="../",
+                    help="Output-folder, default: ../")
 parser.add_argument("mode", nargs='?', default="Random",
                     help="How to cluster the documents: 'Random', 'LDA', 'loadLDA'")
 args = parser.parse_args()
@@ -41,6 +43,9 @@ elif args.maxfiles > 5000:
 if args.nodes < 1:
     print('ERROR: NODES < 1 (' + args.nodes + ')')
     sys.exit(1)
+if not os.path.exists(f"{args.output}/"):
+    print(f"ERROR: Out-Folder {args.output}/ not found.")
+    sys.exit(3)
 if not os.path.exists(f"{args.input}/"):
     print(f"ERROR: Folder {args.input}/ not found.")
     sys.exit(2)
@@ -57,9 +62,9 @@ def moveFile(filename, topic, node=-1):
             os.makedirs(f"{args.input}/{topic}/")
         os.rename(f"{args.input}/{filename}", f"{args.input}/{topic}/{filename}")
         return
-    if not os.path.exists(f"./ipfs{node}/{topic}/"):
-        os.makedirs(f"./ipfs{node}/{topic}/")
-    os.rename(f"{args.input}/{topic}/{filename}", f"./ipfs{node}/{topic}/{filename}")
+    if not os.path.exists(f"{args.output}ipfs{node}/{topic}/"):
+        os.makedirs(f"{args.output}ipfs{node}/{topic}/")
+    os.rename(f"{args.input}/{topic}/{filename}", f"{args.output}ipfs{node}/{topic}/{filename}")
 
 
 def trainModel():

@@ -35,10 +35,10 @@ To do this we provide a script called `Sharding.py`.
 python Sharding.py -t 4 -n 3 LDA
 ```
 This sorts the documents into 4 topics (`-t`) using LDA and then distributes them to 3 nodes (`-n`).
-This means that on completion the files will have moved into `./ipfs0/0/`, etc.
+This means that on completion the files will have moved into `../ipfs0/0/`, etc.
 The folders inside the `/ipfsX/` folders denote the topic that the files belong to.
 
 ## Using the data
-Finally, move the `/ipfs0/`, etc. folders up into the repositories root such that they can be used by the search nodes.
+Finally, if they are not already there, move the `/ipfs0/`, etc. folders up into the repository's root such that they can be used by the search nodes.
 
 Now return to (or start with) the `Readme.md` inside the [`../DockerSetup/`](https://github.com/informagi/ipfsearch/tree/master/DockerSetup) folder.
