@@ -1,4 +1,5 @@
 import os
+import shutil
 import math
 from random import randrange, choice
 from operator import itemgetter
@@ -67,7 +68,10 @@ def moveFile(filename, topic, node=-1):
         return
     if not os.path.exists(f"{args.output}ipfs{node}/{topic}/"):
         os.makedirs(f"{args.output}ipfs{node}/{topic}/")
-    os.rename(f"{args.input}/{topic}/{filename}", f"{args.output}ipfs{node}/{topic}/{filename}")
+    # move
+    # os.rename(f"{args.input}/{topic}/{filename}", f"{args.output}ipfs{node}/{topic}/{filename}")
+    # copy:
+    shutil.copyfile(f"{args.input}/{topic}/{filename}", f"{args.output}ipfs{node}/{topic}/{filename}")
 
 
 def trainModel():
@@ -116,34 +120,37 @@ def distributeFiles(numFiles):
     """ Move files to nodes
     """
     nodeFiles = min(math.ceil(numFiles/args.nodes), args.maxfiles)
+    emptyTopics = []
     for n in range(args.nodes):
-        movedFiles = 0
+        numMovedFiles = 0
+        movedFiles = []
         topic = choice([t for t in os.listdir(args.input)])
-        while movedFiles < nodeFiles:
+        while numMovedFiles < nodeFiles:
             if len([t for t in os.listdir(args.input)]) == 0:
                 return  # no directories left
-            if movedFiles < nodeFiles*args.homogeneity:
+            if numMovedFiles < nodeFiles*args.homogeneity:
                 # get a homogenous file
-                f = choice([f for f in os.listdir(f"{args.input}/{topic}")])
+                f = choice([f for f in os.listdir(f"{args.input}/{topic}") if f not in movedFiles])
                 moveFile(f, topic, n)
-                movedFiles += 1
-                if len([f for f in os.listdir(f"{args.input}/{topic}")]) <= 0:
-                    # topic is empty
-                    os.rmdir(f"{args.input}/{topic}")
-                    if len([t for t in os.listdir(args.input)]) <= 0:
+                numMovedFiles += 1
+                movedFiles.append(f)
+                if len([f for f in os.listdir(f"{args.input}/{topic}") if f not in movedFiles]) <= 0:
+                    # all files of topic moved
+                    emptyTopics.append(f"{topic}")
+                    if len([t for t in os.listdir(args.input) if t not in emptyTopics]) <= 0:
                         return
-                    topic = choice([t for t in os.listdir(args.input)])
+                    topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics])
             else:
-                topic = choice([t for t in os.listdir(args.input)])
+                topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics])
                 f = choice([f for f in os.listdir(f"{args.input}/{topic}")])
                 moveFile(f, topic, n)
-                movedFiles += 1
+                numMovedFiles += 1
                 if len([f for f in os.listdir(f"{args.input}/{topic}")]) <= 0:
-                    # topic is empty
-                    os.rmdir(f"{args.input}/{topic}")
-                    if len([t for t in os.listdir(args.input)]) <= 0:
+                    # all files of topic moved
+                    emptyTopics.append(f"{topic}")
+                    if len([t for t in os.listdir(args.input) if t not in emptyTopics]) <= 0:
                         return
-                    topic = choice([t for t in os.listdir(args.input)])
+                    topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics])
 
 
 if args.mode != 'None':
