@@ -49,6 +49,7 @@ stats.droppedMsg = 0;                    // Received and then dropped msgs
 stats.queries = 0;                       // Queries we ask
 stats.localSearches = 0;                 // Searches on an index
 stats.onlineSearches = 0;                // Searches on the network
+stats.providedSearches = 0;              // Searches we provide on the network
 stats.searches = [];                     // searches and their results
 
 // search

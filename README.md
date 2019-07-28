@@ -40,11 +40,15 @@ Now nodes specialising in these topics search their local files and share their 
 ## Running the Code
 For a guide to setting up and running the test environment check out the `Readme.md` inside the [`DockerSetup/`](https://github.com/informagi/ipfsearch/tree/master/DockerSetup) folder.
 To get data that the test enviornment can use, check out the `Readme.md` inside the [`Data/`](https://github.com/informagi/ipfsearch/tree/master/Data) folder.
+Finally, you can evaluate your test using another of our python scripts.
+Check out the `Readme.md` inside the [`Eval/`](https://github.com/informagi/ipfsearch/tree/master/Eval) folder.
 
 ## Structure of the Code
 In this root folder, we have the javascript application that is run on each node in the network (via [node.js](https://nodejs.org)).
 It handles the search and self-organisation of files.
 The [`Data/`](https://github.com/informagi/ipfsearch/tree/master/Data) folder holds python scripts to pre-process data
+and a `Readme.md` explaining how to use those.
+The [`Eval/`](https://github.com/informagi/ipfsearch/tree/master/Eval) folder has python scripts to gather and evaluate statistics after you've run the whole cluster
 and a `Readme.md` explaining how to use those.
 The [`DockerSetup/`](https://github.com/informagi/ipfsearch/tree/master/DockerSetup) folder has scripts
 and snippets to set up the [Docker](https://www.docker.com/)-environment.

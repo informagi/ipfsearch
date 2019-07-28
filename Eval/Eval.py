@@ -1,0 +1,135 @@
+import os
+import json
+import argparse
+import sys
+
+# Arguments
+parser = argparse.ArgumentParser(description="Gather data and evaluate it.")
+parser.add_argument("-f", "--force", action="store_true",
+                    help="Wether to overwrite an existing output file.")
+parser.add_argument("-i", "--input", default="../",
+                    help="Path to where /ipfs0/, etc are located, default: ../")
+parser.add_argument("output", nargs='?', default="output.md",
+                    help="Name of the output file, default: output.md")
+args = parser.parse_args()
+
+# Check for early fail condition
+if not os.path.exists(f"{args.input}ipfs0/"):
+    print(f"ERROR: No input folder found ({args.input}ipfs0/).")
+    sys.exit(2)
+if os.path.exists(f"./{args.output}"):
+    if not args.force:
+        print(f"ERROR: {args.output} already exists (use -f to overwrite).")
+        sys.exit(1)
+    print(f'WARNING: overwriting {args.output}')
+    sys.stdout.flush()
+
+
+def addFilenamesToSearches():
+    print(f"Adding filenames to searches ...")
+    sys.stdout.flush()
+    global data
+    for search in data['searches']:
+        for result in search['r']:
+            result['name'] = data['hashes'][result['ref']]
+
+
+def getSystemStats():
+    print(f"Gathering general settings of the enviornment ...")
+    sys.stdout.flush()
+    global data
+    # load config
+    with open(f'{args.input}config.js', "r", encoding='utf-8') as f:
+        lines = f.readlines()
+    for line in lines:
+        if 'topics' in line:
+            arr = line[24:line.index(';')]
+            arr = json.loads(arr)
+            data['system']['numTopics'] = len(arr)
+        elif 'topicThreshold' in line:
+            data['system']['topicThreshold'] = float(line[32:line.index(';')])
+        elif 'maxChannels' in line:
+            data['system']['maxChannels'] = int(line[29:line.index(';')])
+        elif 'soSpace' in line:
+            data['system']['soSpace'] = float(line[25:line.index(';')])
+
+
+def getTotalStats():
+    print(f"Totaling node stats ...")
+    sys.stdout.flush()
+    global data
+    for nodeStats in data['nodes']:
+        for k, v in nodeStats.items():
+            if k == 'name':
+                continue
+            if k in data['total']:
+                data['total'][k] += v
+            else:
+                data['total'][k] = v
+
+
+def getNodeStats(nodeFolder):
+    print(f"Gathering stats from {nodeFolder} ...")
+    sys.stdout.flush()
+    global data
+    # load node hashes dict
+    with open(f'{args.input}{nodeFolder}/hashes.json', "r", encoding='utf-8') as f:
+        nodeHashes = json.load(f)
+    data['hashes'] = {**data['hashes'], **nodeHashes}
+    # load node data
+    with open(f'{args.input}{nodeFolder}/stats.json', "r", encoding='utf-8') as f:
+        nodeData = json.load(f)
+    # add searches
+    data['searches'] = data['searches'] + nodeData['searches']
+    # modify dict
+    nodeData['name'] = nodeFolder
+    del nodeData['searches']
+    # put into our global object
+    data['nodes'].append(nodeData)
+
+
+def writeOut():
+    global data
+    with open(f'{args.output}', 'w', encoding='utf-8') as f:
+        f.write('# System\n\n')
+        f.write('|Key|Value|\n|---|---|\n')
+        for k, v in data['system'].items():
+            f.write(f'|{k}|{v}|\n')
+        f.write(f'\n# Nodes\n\n')
+        for node in data['nodes']:
+            f.write(f'## {node["name"]}\n\n')
+            f.write('|Key|Value|\n|---|---|\n')
+            for k, v in node.items():
+                if k != 'name':
+                    f.write(f'|{k}|{v}|\n')
+        f.write(f'## Total/Avg\n\n')
+        f.write('|Key|Total|Average|\n|---|---|---|\n')
+        for k, v in data['total'].items():
+            f.write(f'|{k}|{v}|{v/data["system"]["numNodes"]}|\n')
+        f.write(f'\n# Searches\n\n')
+        f.write('Only the top 3 results per search are printed here.\n\n')
+        f.write('|Query|Score|Document|\n|---|---|---|\n')
+        for search in data['searches']:
+            f.write(f'|{search["q"]}|{search["r"][0]["score"]}|{search["r"][0]["name"]}|\n')
+            for result in search["r"][1:3]:
+                f.write(f'| |{result["score"]}|{result["name"]}|\n')
+
+data = {}              # global object where all data is stored
+data['system'] = {}    # info on the enviornment settings
+data['nodes'] = []     # stats of the individual nodes
+data['total'] = {}     # total stats of all nodes aggregated
+data['searches'] = []  # searches and results
+data['hashes'] = {}    # hash-filename dict
+nodeFolders = [f for f in os.listdir(args.input) if not os.path.isfile(os.path.join(args.input, f)) and 'ipfs' in f]
+numNodes = len(nodeFolders)
+data['system']['numNodes'] = numNodes
+print(f"Gathering stats from {numNodes} nodes.")
+sys.stdout.flush()
+for nodeFolder in nodeFolders:
+    getNodeStats(nodeFolder)
+getTotalStats()
+getSystemStats()
+addFilenamesToSearches()
+print(f"Stats gathered.")
+sys.stdout.flush()
+writeOut()

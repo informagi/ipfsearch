@@ -68,7 +68,7 @@ It would include 3 peers.
 
 ## Running the whole thing
 While you can run the cluster without any data, it is more fun to run it with data.
-Checkout the `Readme.md` inside the [`../Data/`](https://github.com/informagi/ipfsearch/tree/master/Data) folder to get an explanation of how to obtain it.
+Chec out the `Readme.md` inside the [`../Data/`](https://github.com/informagi/ipfsearch/tree/master/Data) folder to get an explanation of how to obtain it.
 
 
 Before running the stack it is a good idea to generate a cluster secret.
@@ -81,3 +81,8 @@ Then just run
 docker-compose up
 ```
 and the containers are started.
+
+After a test run you might want to evaluate how the nodes behaved etc.
+The nodes themselves already save data into their respective folders (e.g. `/ipfs0/stats.json`),
+but we also provide a python script to collect all the data into one place and arrange it into a nice overview.
+Take a look at the `Readme.md` inside the [`../Eval/`](https://github.com/informagi/ipfsearch/tree/master/Eval) folder for more information on that.

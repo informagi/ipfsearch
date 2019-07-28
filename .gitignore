@@ -10,6 +10,10 @@ ipfs*/
 Data/WikiExtractor.py
 # trained models
 Data/models/
+# Evaluated data
+Eval/*
+!Eval/Eval.py
+!Eval/Readme.md
 
 # General things
 # Sublime Text files
