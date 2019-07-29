@@ -75,8 +75,25 @@ def getQueries():
     if len(queryTerms) > args.numberQueries:
         queryTerms = queryTerms[:args.numberQueries]
     while len(queryTerms) < args.numberQueries:
-        # TODO: replace with smarter method
-        queryTerms.append('Potato')
+        # find a random file
+        node = choice([n for n in os.listdir(args.output) if 'ipfs' in n and not os.path.isfile(f'{args.output}{n}')])
+        topic = choice([t for t in os.listdir(f'{args.output}{node}') if not os.path.isfile(f'{args.output}{node}/{t}')])
+        file = choice([f for f in os.listdir(f'{args.output}{node}/{topic}')])
+        with open(f'{args.output}{node}/{topic}/{file}', 'r', encoding='utf-8') as f:
+            # find a random word
+            words = ' '.join(f.readlines()).split()
+            word = choice(words)
+            while len(word) < 5:
+                # poor man's stopword filter
+                word = choice(words)
+            queryTerms.append(word)
+            # maybe a second one
+            if choice([True, False, False]):
+                word = choice(words)
+                while len(word) < 4:
+                    # poor man's stopword filter
+                    word = choice(words)
+                queryTerms[-1] += ' ' + choice(words)
     return queryTerms
 
 
