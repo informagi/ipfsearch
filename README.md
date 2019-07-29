@@ -37,6 +37,13 @@ It then searches its local files of that topic.
 If the results weren't satisfactory it asks in the channel of that topic.
 Now nodes specialising in these topics search their local files and share their results with the querying node.
 
+### Evaluation
+After a run we can evaluate how it went.
+For this, we can look at how the files were distributed,
+how they were then self-organised,
+how much traffic was caused
+and, of course, how well the search performed.
+
 ## Running the Code
 For a guide to setting up and running the test environment check out the `Readme.md` inside the [`DockerSetup/`](https://github.com/informagi/ipfsearch/tree/master/DockerSetup) folder.
 To get data that the test enviornment can use, check out the `Readme.md` inside the [`Data/`](https://github.com/informagi/ipfsearch/tree/master/Data) folder.
