@@ -38,6 +38,20 @@ This sorts the documents into 4 topics (`-t`) using LDA and then distributes the
 This means that on completion the files will have moved into `../ipfs0/0/`, etc.
 The folders inside the `/ipfsX/` folders denote the topic that the files belong to.
 
+## Queries
+Now that the data has been distributed to the different peers,
+we can also distribute search queries to those peers.
+In a `queries.json` file we tell the individual nodes what they are supposed to search for during runtime.
+If you want to use your own queries, put them in a file, one query per line (This is optional).
+Now run
+```bash
+python Queries.py -n 2 -m loadLDA -i queries.txt 20
+```
+
+This script will read your queries from `queries.txt` and add its own ones if less than 20 queries are provided.
+It will then load the LDA model (`-m loadLDA`) trained by `Sharding.py` in the above step and distribute the 20 queries to 2 nodes (`-n 2`).
+The generated `queries.json` files are then placed into the `/ipfs0/`, etc. folders, where they belong.
+
 ## Using the data
 Finally, if they are not already there, move the `/ipfs0/`, etc. folders up into the repository's root such that they can be used by the search nodes.
 
