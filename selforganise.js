@@ -43,6 +43,20 @@ async function clean() {
 }
 
 /*
+ * remove files from arr that we already host
+ */
+async function removeOurs(arr, topic) {
+  return Promise.all(arr.filter(async (el) => {
+    try {
+      await fs.statSync(`./${ipfs.host}/${topic}/${el.n}`);
+      return false;
+    } catch (error) {
+      return true;
+    }
+  }));
+}
+
+/*
  * pin, index and save new self-organised files
  */
 async function addFiles(files, topic) {
@@ -101,7 +115,9 @@ async function selforganise(topics, addToIndex, tries=2) {
   await util.timeout(cfg.fileWait);
   // unsub
   await Listener.unsub(askIn, ownerId);
-  const newFiles = Listener.stopListening(askIn, topics[0], true);
+  let newFiles = Listener.stopListening(askIn, topics[0], true);
+  // remove files we already have
+  newFiles = await removeOurs(newFiles, topics[0]);
   // add those new files to ipfs and the index
   util.shuffle(newFiles);
   // only add up to the maximum
