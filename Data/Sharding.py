@@ -16,8 +16,9 @@ parser.add_argument("-t", "--topics", type=int, default=5,
                     help="the number of topics to create, default: 5")
 parser.add_argument("-n", "--nodes", type=int, default=5,
                     help="the number of peers to distribute the files to, default: 2")
-parser.add_argument("-ho", "--homogeneity", type=float, default=0.5,
-                    help="how homogenous the files per peer are (0: not at all, 1: very), default: 0.5")
+parser.add_argument("-d", "--distribution", type=float, nargs='+', default=[0.5],
+                    help="List of percentage per topic (e.g. 0.5, 0.3: 50\% of files belong " +
+                    "to one topic, 30\% to another and the remaining 20\% are distributed randomly), default: 0.5")
 parser.add_argument("-m", "--maxfiles", type=int, default=2000,
                     help="Maximum files per node, default: 2000")
 parser.add_argument("-i", "--input", default="./dump",
@@ -46,16 +47,19 @@ if args.nodes < 1:
     sys.exit(1)
 if args.mode not in ['Random', 'LDA', 'loadLDA', 'None']:
     print(f"ERROR: Unknown mode of sharding: {args.mode}")
-    sys.exit(4)
+    sys.exit(2)
 if not os.path.exists(f"{args.output}/"):
     print(f"ERROR: Out-Folder {args.output}/ not found.")
     sys.exit(3)
 if not os.path.exists(f"{args.input}/"):
     print(f"ERROR: Folder {args.input}/ not found.")
-    sys.exit(2)
+    sys.exit(4)
 if len([f for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f))]) < 1 and args.mode != 'None':
     print(f"ERROR: No files in {args.input}/ found.")
-    sys.exit(2)
+    sys.exit(4)
+if sum(args.distribution) > 1:
+    print(f"ERROR: distribution > 1 ({sum(args.distribution)}).")
+    sys.exit(1)
 
 
 def moveFile(filename, topic, node=-1):
@@ -124,12 +128,15 @@ def distributeFiles(numFiles):
     for n in range(args.nodes):
         numMovedFiles = 0
         movedFiles = []
-        topic = choice([t for t in os.listdir(args.input)])
+        doneTopics = []
+        topic = choice([t for t in os.listdir(args.input) if t not in doneTopics + emptyTopics])
+        topicIndex = 0
+        topicLimit = nodeFiles*args.distribution[topicIndex] + numMovedFiles
         while numMovedFiles < nodeFiles:
-            if len([t for t in os.listdir(args.input)]) == 0:
+            if len([t for t in os.listdir(args.input) if t not in emptyTopics]) == 0:
                 return  # no directories left
-            if numMovedFiles < nodeFiles*args.homogeneity:
-                # get a homogenous file
+            if numMovedFiles < topicLimit:
+                # get a file of our topic
                 f = choice([f for f in os.listdir(f"{args.input}/{topic}") if f not in movedFiles])
                 moveFile(f, topic, n)
                 numMovedFiles += 1
@@ -138,25 +145,26 @@ def distributeFiles(numFiles):
                     # all files of topic moved
                     emptyTopics.append(f"{topic}")
                     if len([t for t in os.listdir(args.input) if t not in emptyTopics]) <= 0:
-                        return
-                    topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics])
+                        return  # no more files
             else:
-                topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics])
-                f = choice([f for f in os.listdir(f"{args.input}/{topic}")])
-                moveFile(f, topic, n)
-                numMovedFiles += 1
-                if len([f for f in os.listdir(f"{args.input}/{topic}")]) <= 0:
-                    # all files of topic moved
-                    emptyTopics.append(f"{topic}")
-                    if len([t for t in os.listdir(args.input) if t not in emptyTopics]) <= 0:
-                        return
+                if numMovedFiles >= topicLimit:
+                    doneTopics.append(topic)
+                # get a new topic
+                topicIndex += 1
+                if topicIndex < len(args.distribution):
+                    # fixed percentage
+                    topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics + doneTopics])
+                    topicLimit = nodeFiles*args.distribution[topicIndex] + numMovedFiles
+                else:
+                    # random
                     topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics])
+                    topicLimit = numMovedFiles + 1
 
 
 if args.mode != 'None':
     numFiles = len([f for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f))])
     print(f"Sorting {numFiles} files into {args.topics} topics using {args.mode}.")
-    print(f"Then distributing them to {args.nodes} peers with homogeneity {args.homogeneity}.")
+    print(f"Then distributing them to {args.nodes} peers with distribution {args.distribution}.")
     sys.stdout.flush()
     model, dct = trainModel()
     print(f"{args.mode} model trained.")
@@ -170,6 +178,7 @@ else:
     for folder in topicFolders:
         numFiles += len([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))])
     print(f"{numFiles} Files were already sorted.")
+    print(f"Distributing them to {args.nodes} peers with distribution {args.distribution}.")
     sys.stdout.flush()
 distributeFiles(numFiles)
 print(f"Files distributed.")
