@@ -1,15 +1,12 @@
 # Project specific
 # Data
-Data/dump*
-Data/extracted*
-Data/*.bz2
-Data/corpus*
+Data/*
+!Data/Queries.py
+!Data/Shading.py
+!Data/Readme.md
+!Data/WikiSplitter.py
 # Runtime data
 ipfs*/
-# Data script (get it from https://github.com/attardi/wikiextractor)
-Data/WikiExtractor.py
-# trained models
-Data/models/
 # Evaluated data
 Eval/*
 !Eval/Eval.py
