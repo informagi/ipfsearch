@@ -45,6 +45,7 @@ def getSystemStats():
         if 'topics' in line:
             arr = line[24:line.index(';')]
             arr = json.loads(arr)
+            data['system']['topics'] = arr
             data['system']['numTopics'] = len(arr)
         elif 'topicThreshold' in line:
             data['system']['topicThreshold'] = float(line[32:line.index(';')])
@@ -52,6 +53,11 @@ def getSystemStats():
             data['system']['maxChannels'] = int(line[29:line.index(';')])
         elif 'soSpace' in line:
             data['system']['soSpace'] = float(line[25:line.index(';')])
+
+
+def getFileStats():
+    print(f"Gathering file stats of the enviornment ...")
+    sys.stdout.flush()
     # which files are hosted, which are searchable?
     searchableFiles = []
     unsearchableFiles = []
@@ -69,6 +75,27 @@ def getSystemStats():
         if searchableFile in unsearchableFiles:
             unsearchableFiles.remove(searchableFile)
     data['system']['unsearchableFiles'] = len(unsearchableFiles)
+    # what's the file distribution?
+    for node in data['nodes']:
+        node['totalDist'] = {}
+        node['pinDist'] = {}
+        node['soDist'] = {}
+        # count files and init soDist to 0
+        for topic in data['system']['topics']:
+            topic = str(topic)
+            node['totalDist'][topic] = 0
+            node['soDist'][topic] = 0
+            if os.path.exists(f"{args.input}{node['name']}/{topic}"):
+                node['totalDist'][topic] = len(os.listdir(f"{args.input}{node['name']}/{topic}"))
+        # load node so-stats
+        with open(f'{args.input}{node["name"]}/so.json', "r", encoding='utf-8') as f:
+            soDump = json.load(f)
+            for doc in soDump['docs']:
+                node['soDist'][doc['topic']] += 1
+        # get the difference
+        for topic in data['system']['topics']:
+            topic = str(topic)
+            node['pinDist'][topic] = node['totalDist'][topic] - node['soDist'][topic]
 
 
 def getTotalStats():
@@ -110,21 +137,31 @@ def getNodeStats(nodeFolder):
 def writeOut():
     global data
     with open(f'{args.output}', 'w', encoding='utf-8') as f:
+        # System
         f.write('# System\n\n')
         f.write('|Key|Value|\n|---|---|\n')
         for k, v in data['system'].items():
             f.write(f'|{k}|{v}|\n')
-        f.write(f'\n# Nodes\n\n')
+        # Nodes
+        f.write(f'\n# Nodes')
         for node in data['nodes']:
-            f.write(f'## {node["name"]}\n\n')
+            f.write(f'\n\n## {node["name"]}\n')
             f.write('|Key|Value|\n|---|---|\n')
             for k, v in node.items():
-                if k != 'name':
+                if k not in ['name', 'totalDist', 'pinDist', 'soDist']:
                     f.write(f'|{k}|{v}|\n')
+            f.write('---\n')
+            # files
+            f.write('|Topic|pinned Files|so Files|total Files|\n|---|---|---|---|\n')
+            for topic in data['system']['topics']:
+                topic = str(topic)
+                f.write(f'|{topic}|{node["pinDist"][topic]}|{node["soDist"][topic]}|{node["totalDist"][topic]}|\n')
+        # Total
         f.write(f'## Total/Avg\n\n')
         f.write('|Key|Total|Average|\n|---|---|---|\n')
         for k, v in data['total'].items():
             f.write(f'|{k}|{v}|{v/data["system"]["numNodes"]}|\n')
+        # Searches
         f.write(f'\n# Searches\n\n')
         f.write('Only the top 3 results per search are printed here.\n\n')
         f.write('|Query|Score|Document|\n|---|---|---|\n')
@@ -150,6 +187,7 @@ for nodeFolder in nodeFolders:
 getTotalStats()
 getSystemStats()
 addFilenamesToSearches()
+getFileStats()
 print(f"Stats gathered.")
 sys.stdout.flush()
 writeOut()
