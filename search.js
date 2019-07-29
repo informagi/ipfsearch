@@ -148,7 +148,7 @@ async function getRelevantTopics() {
   if (r.length === 0) {
     sLog(`Error: topicThreshold (${cfg.topicThreshold}) not met for any topic.`);
   }
-  stats.providedSearches = r.length;
+  stats.providedSearches = r;
   return r;
 }
 

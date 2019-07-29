@@ -35,7 +35,7 @@ def addFilenamesToSearches():
 
 
 def getSystemStats():
-    print(f"Gathering general settings of the enviornment ...")
+    print(f"Gathering general settings and stats of the enviornment ...")
     sys.stdout.flush()
     global data
     # load config
@@ -52,6 +52,23 @@ def getSystemStats():
             data['system']['maxChannels'] = int(line[29:line.index(';')])
         elif 'soSpace' in line:
             data['system']['soSpace'] = float(line[25:line.index(';')])
+    # which files are hosted, which are searchable?
+    searchableFiles = []
+    unsearchableFiles = []
+    for node in data['nodeSearches']:
+        for topicFolder in [f for f in os.listdir(f'{args.input}{node["name"]}') if not os.path.isfile(f'{args.input}{node["name"]}/{f}')]:
+            files = os.listdir(f'{args.input}{node["name"]}/{topicFolder}')
+            if topicFolder in node['searches']:
+                searchableFiles += files
+            else:
+                unsearchableFiles += files
+    data['system']['distinctFiles'] = len(list(set(searchableFiles + unsearchableFiles)))
+    unsearchableFiles = list(set(unsearchableFiles))
+    searchableFiles = list(set(searchableFiles))
+    for searchableFile in searchableFiles:
+        if searchableFile in unsearchableFiles:
+            unsearchableFiles.remove(searchableFile)
+    data['system']['unsearchableFiles'] = len(unsearchableFiles)
 
 
 def getTotalStats():
@@ -82,7 +99,9 @@ def getNodeStats(nodeFolder):
     # add searches
     data['searches'] = data['searches'] + nodeData['searches']
     # modify dict
+    data['nodeSearches'].append({'name': nodeFolder, 'searches': nodeData['providedSearches']})
     nodeData['name'] = nodeFolder
+    nodeData['providedSearches'] = len(nodeData['providedSearches']) # list to int
     del nodeData['searches']
     # put into our global object
     data['nodes'].append(nodeData)
@@ -114,12 +133,13 @@ def writeOut():
             for result in search["r"][1:3]:
                 f.write(f'| |{result["score"]}|{result["name"]}|\n')
 
-data = {}              # global object where all data is stored
-data['system'] = {}    # info on the enviornment settings
-data['nodes'] = []     # stats of the individual nodes
-data['total'] = {}     # total stats of all nodes aggregated
-data['searches'] = []  # searches and results
-data['hashes'] = {}    # hash-filename dict
+data = {}                  # global object where all data is stored
+data['system'] = {}        # info on the enviornment settings
+data['nodes'] = []         # stats of the individual nodes
+data['total'] = {}         # total stats of all nodes aggregated
+data['searches'] = []      # searches and results
+data['hashes'] = {}        # hash-filename dict
+data['nodeSearches'] = []  # searches provided by nodes
 nodeFolders = [f for f in os.listdir(args.input) if not os.path.isfile(os.path.join(args.input, f)) and 'ipfs' in f]
 numNodes = len(nodeFolders)
 data['system']['numNodes'] = numNodes
