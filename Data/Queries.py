@@ -11,6 +11,7 @@ from gensim.models.ldamodel import LdaModel
 
 import argparse
 import sys
+import re
 
 # Arguments
 parser = argparse.ArgumentParser(description="Generate queries and move them to different peers.")
@@ -22,6 +23,8 @@ parser.add_argument("-i", "--input", default="",
                     help="Input-file with one query per line, optional, default: None")
 parser.add_argument("-o", "--output", default="../",
                     help="Output-folder, where /ipfs0/ etc. are located, default: ../")
+parser.add_argument("-q", "--queryIds", default="./qIDs.json",
+                    help="Where to save queryIds. These are used by Eval.py, default: ./qIDs.json")
 parser.add_argument("numberQueries", nargs='?', type=int, default=5,
                     help="How many queries to distribute in total, default: 5")
 args = parser.parse_args()
@@ -50,6 +53,8 @@ if args.numberQueries < 1:
 elif args.numberQueries > 5000:
     print('WARNING: You are generating a large number of queries (' + args.numberQueries + ')')
     sys.stdout.flush()
+
+letters = re.compile('[^a-zA-Z]')
 
 
 def loadModel():
@@ -82,17 +87,18 @@ def getQueries():
         with open(f'{args.output}{node}/{topic}/{file}', 'r', encoding='utf-8') as f:
             # find a random word
             words = ' '.join(f.readlines()).split()
-            word = choice(words)
+            word = letters.sub('', choice(words))
+            letters.sub('', word)
             while len(word) < 5:
                 # poor man's stopword filter
-                word = choice(words)
+                word = letters.sub('', choice(words))
             queryTerms.append(word)
             # maybe a second one
             if choice([True, False, False]):
-                word = choice(words)
+                word = letters.sub('', choice(words))
                 while len(word) < 4:
                     # poor man's stopword filter
-                    word = choice(words)
+                    word = letters.sub('', choice(words))
                 queryTerms[-1] += ' ' + choice(words)
     return queryTerms
 
@@ -129,7 +135,18 @@ def distributeQueries(queries):
             json.dump(q, f)
 
 
+def saveQueryIds(queries):
+    queries['ids'] = {}
+    i = 0
+    for query in queries['queries']:
+        queries['ids'][query['q']] = f'{i:03d}{query["q"][:2].upper()}'
+        i += 1
+    with open(f'{args.queryIds}', 'w', encoding='utf-8') as f:
+        json.dump(queries, f)
+
+
 model, dct = loadModel()
 queries = classifyQueries(model, dct)
 distributeQueries(queries)
+saveQueryIds(queries)
 print('Queries successfully distributed.')
