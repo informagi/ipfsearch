@@ -1,6 +1,7 @@
 import os
 import shutil
 import math
+import json
 from random import randrange, choice
 from operator import itemgetter
 from gensim.corpora import Dictionary
@@ -9,6 +10,7 @@ from gensim.models.ldamodel import LdaModel
 
 import argparse
 import sys
+import re
 
 # Arguments
 parser = argparse.ArgumentParser(description="Cluster files into shards and move them to peers.")
@@ -27,6 +29,8 @@ parser.add_argument("-i", "--input", default="./dump",
                     help="Input-folder, default: ./dump")
 parser.add_argument("-o", "--output", default="../",
                     help="Output-folder, default: ../")
+parser.add_argument("-f", "--fileIds", default="./fIDs.json",
+                    help="Where to save fileIds. These are used by Eval.py, default: ./fIDs.json")
 parser.add_argument("mode", nargs='?', default="Random",
                     help="How to cluster the documents: 'Random', 'LDA', 'loadLDA', 'None'")
 args = parser.parse_args()
@@ -155,7 +159,8 @@ def distributeFiles(numFiles):
     """ Copy files to nodes (except for duplicates)
     """
     nodeFiles = min(math.ceil(numFiles/args.nodes), args.maxfiles) * (1 - args.duplicates)
-    emptyTopics = []
+    emptyTopics = []  # topics that have no more files
+    fileList = []     # files we distributed
     for n in range(args.nodes):
         numMovedFiles = 0
         movedFiles = []
@@ -170,6 +175,7 @@ def distributeFiles(numFiles):
                 # get a file of our topic
                 f = choice([f for f in os.listdir(f"{args.input}/{topic}") if f not in movedFiles])
                 moveFile(f, topic, n)
+                fileList.append(f)
                 numMovedFiles += 1
                 movedFiles.append(f)
                 if len([f for f in os.listdir(f"{args.input}/{topic}") if f not in movedFiles]) <= 0:
@@ -191,6 +197,7 @@ def distributeFiles(numFiles):
                     # random
                     topic = choice([t for t in os.listdir(args.input) if t not in emptyTopics])
                     topicLimit = numMovedFiles + 1
+    return fileList
 
 
 def duplicateFiles(numFiles):
@@ -236,6 +243,17 @@ def duplicateFiles(numFiles):
                     topicLimit = numDupedFiles + 1
 
 
+def saveFileIds(fileNames):
+    letters = re.compile('[^a-zA-Z]')
+    files = {}
+    i = 0
+    for fileName in fileNames:
+        files[fileName] = f'{i:04d}{letters.sub("", fileName)[:2].upper()}'
+        i += 1
+    with open(f'{args.fileIds}', 'w', encoding='utf-8') as f:
+        json.dump(files, f)
+
+
 if args.mode != 'None':
     numFiles = len([f for f in os.listdir(args.input) if os.path.isfile(os.path.join(args.input, f))])
     print(f"Sorting {numFiles} files into {args.topics} topics using {args.mode}.")
@@ -255,9 +273,11 @@ else:
     print(f"{numFiles} Files were already sorted.")
     print(f"Distributing them to {args.nodes} peers with distribution {args.distribution} and {args.duplicates} duplicates.")
     sys.stdout.flush()
-distributeFiles(numFiles)
+distFiles = distributeFiles(numFiles)
 print(f"Causing duplicates ...")
 sys.stdout.flush()
 duplicateFiles(numFiles)
-print(f"Files distributed.")
+print(f"Files distributed. Saving fileIDs ...")
 sys.stdout.flush()
+saveFileIds(distFiles)
+print(f"Done.")
