@@ -9,19 +9,41 @@ parser.add_argument("-f", "--force", action="store_true",
                     help="Wether to overwrite an existing output file.")
 parser.add_argument("-i", "--input", default="../",
                     help="Path to where /ipfs0/, etc are located, default: ../")
-parser.add_argument("output", nargs='?', default="output.md",
-                    help="Name of the output file, default: output.md")
+parser.add_argument("-q", "--queryIds", default="../Data/qIDs.json",
+                    help="Where query ids are located, default: ../Data/qIDs.json")
+parser.add_argument("-l", "--fileIds", default="../Data/fIDs.json",
+                    help="Where file ids are located, default: ../Data/fIDs.json")
+parser.add_argument("output", nargs='?', default="output",
+                    help="Name of the output files, default: output")
 args = parser.parse_args()
 
 # Check for early fail condition
 if not os.path.exists(f"{args.input}ipfs0/"):
     print(f"ERROR: No input folder found ({args.input}ipfs0/).")
     sys.exit(2)
-if os.path.exists(f"./{args.output}"):
+if not os.path.exists(f"{args.queryIds}"):
+    print(f"ERROR: No queryIds file found ({args.queryIds}).")
+    sys.exit(2)
+if not os.path.exists(f"{args.fileIds}"):
+    print(f"ERROR: No fileIds file found ({args.fileIds}).")
+    sys.exit(2)
+if os.path.exists(f"./{args.output}.md"):
     if not args.force:
-        print(f"ERROR: {args.output} already exists (use -f to overwrite).")
+        print(f"ERROR: {args.output}.md already exists (use -f to overwrite).")
         sys.exit(1)
-    print(f'WARNING: overwriting {args.output}')
+    print(f'WARNING: overwriting {args.output}.md')
+    sys.stdout.flush()
+if os.path.exists(f"./{args.output}.qrels"):
+    if not args.force:
+        print(f"ERROR: {args.output}.qrels already exists (use -f to overwrite).")
+        sys.exit(1)
+    print(f'WARNING: overwriting {args.output}.qrels')
+    sys.stdout.flush()
+if os.path.exists(f"./{args.output}.resuts"):
+    if not args.force:
+        print(f"ERROR: {args.output}.resuts already exists (use -f to overwrite).")
+        sys.exit(1)
+    print(f'WARNING: overwriting {args.output}.resuts')
     sys.stdout.flush()
 
 
@@ -136,7 +158,7 @@ def getNodeStats(nodeFolder):
 
 def writeOut():
     global data
-    with open(f'{args.output}', 'w', encoding='utf-8') as f:
+    with open(f'{args.output}.md', 'w', encoding='utf-8') as f:
         # System
         f.write('# System\n\n')
         f.write('|Key|Value|\n|---|---|\n')
@@ -170,6 +192,26 @@ def writeOut():
             for result in search["r"][1:3]:
                 f.write(f'| |{result["score"]}|{result["name"]}|\n')
 
+
+def writeSearches():
+    global data
+    # load qIds
+    with open(args.queryIds, 'r', encoding='utf-8') as f:
+        qIds = json.load(f)['ids']
+    # load fIds
+    with open(args.fileIds, 'r', encoding='utf-8') as f:
+        fIds = json.load(f)
+    # Searches
+    with open(f'{args.output}.qrels', 'w', encoding='utf-8') as f:
+        for search in data['searches']:
+            for result in search["r"]:
+                f.write(f'{qIds[search["q"]]} 0 {fIds[result["name"]]} {min(1, result["score"])}\n')
+    with open(f'{args.output}.results', 'w', encoding='utf-8') as f:
+        for search in data['searches']:
+            for result in search["r"]:
+                f.write(f'{qIds[search["q"]]} Q0 {fIds[result["name"]]} 0 {result["score"]} IRRELEVANT\n')
+
+
 data = {}                  # global object where all data is stored
 data['system'] = {}        # info on the enviornment settings
 data['nodes'] = []         # stats of the individual nodes
@@ -191,3 +233,5 @@ getFileStats()
 print(f"Stats gathered.")
 sys.stdout.flush()
 writeOut()
+writeSearches()
+print(f"Files written.")
