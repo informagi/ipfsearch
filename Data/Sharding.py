@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description="Cluster files into shards and move
 parser.add_argument("-t", "--topics", type=int, default=5,
                     help="the number of topics to create, default: 5")
 parser.add_argument("-n", "--nodes", type=int, default=5,
-                    help="the number of peers to distribute the files to, default: 2")
+                    help="the number of peers to distribute the files to, default: 5")
 parser.add_argument("-d", "--distribution", type=float, nargs='+', default=[0.7, 0.1],
                     help="List of percentage per topic (e.g. 0.5, 0.3: 50\% of files belong " +
                     "to one topic, 30\% to another and the remaining 20\% are distributed randomly), default: 0.7 0.1")
