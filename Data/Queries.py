@@ -100,6 +100,8 @@ def getQueries():
                     # poor man's stopword filter
                     word = letters.sub('', choice(words))
                 queryTerms[-1] += ' ' + choice(words)
+        # remove duplicates
+        queryTerms = list(set(queryTerms))
     return queryTerms
 
 
