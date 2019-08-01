@@ -54,8 +54,6 @@ elif args.numberQueries > 5000:
     print('WARNING: You are generating a large number of queries (' + args.numberQueries + ')')
     sys.stdout.flush()
 
-letters = re.compile('[^a-zA-Z]')
-
 
 def loadModel():
     """ Load a model
@@ -73,6 +71,7 @@ def loadModel():
 def getQueries():
     """ Load queries
     """
+    letters = re.compile('[^a-zA-Z]')
     queryTerms = []
     if len(args.input) > 0:
         with open(args.input, 'r', encoding='utf-8') as f:
@@ -84,22 +83,27 @@ def getQueries():
         node = choice([n for n in os.listdir(args.output) if 'ipfs' in n and not os.path.isfile(f'{args.output}{n}')])
         topic = choice([t for t in os.listdir(f'{args.output}{node}') if not os.path.isfile(f'{args.output}{node}/{t}')])
         file = choice([f for f in os.listdir(f'{args.output}{node}/{topic}')])
+        tries = 0
         with open(f'{args.output}{node}/{topic}/{file}', 'r', encoding='utf-8') as f:
             # find a random word
             words = ' '.join(f.readlines()).split()
             word = letters.sub('', choice(words))
             letters.sub('', word)
-            while len(word) < 5:
+            while len(word) < 5 and tries < 10:
                 # poor man's stopword filter
                 word = letters.sub('', choice(words))
+                tries += 1
             queryTerms.append(word)
             # maybe a second one
             if choice([True, False, False]):
                 word = letters.sub('', choice(words))
-                while len(word) < 4:
+                while len(word) < 4 and tries < 10:
                     # poor man's stopword filter
                     word = letters.sub('', choice(words))
+                    tries += 1
                 queryTerms[-1] += ' ' + choice(words)
+            if tries >= 10:
+                del queryTerms[-1]
         # remove duplicates
         queryTerms = list(set(queryTerms))
     return queryTerms
