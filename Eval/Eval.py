@@ -110,10 +110,14 @@ def getFileStats():
             if os.path.exists(f"{args.input}{node['name']}/{topic}"):
                 node['totalDist'][topic] = len(os.listdir(f"{args.input}{node['name']}/{topic}"))
         # load node so-stats
-        with open(f'{args.input}{node["name"]}/so.json', "r", encoding='utf-8') as f:
-            soDump = json.load(f)
-            for doc in soDump['docs']:
-                node['soDist'][doc['topic']] += 1
+        try:
+            with open(f'{args.input}{node["name"]}/so.json', "r", encoding='utf-8') as f:
+                soDump = json.load(f)
+                for doc in soDump['docs']:
+                    node['soDist'][doc['topic']] += 1
+        except:
+            # no so.json
+            pass
         # get the difference
         for topic in data['system']['topics']:
             topic = str(topic)
@@ -188,9 +192,12 @@ def writeOut():
         f.write('Only the top 3 results per search are printed here.\n\n')
         f.write('|Query|Score|Document|\n|---|---|---|\n')
         for search in data['searches']:
-            f.write(f'|{search["q"]}|{search["r"][0]["score"]}|{search["r"][0]["name"]}|\n')
-            for result in search["r"][1:3]:
-                f.write(f'| |{result["score"]}|{result["name"]}|\n')
+            if len(search['r']) > 0:
+                f.write(f'|{search["q"]}|{search["r"][0]["score"]}|{search["r"][0]["name"]}|\n')
+                for result in search["r"][1:3]:
+                    f.write(f'| |{result["score"]}|{result["name"]}|\n')
+            else:
+                f.write(f'|{search["q"]}| N/A | N/A |\n')
 
 
 def writeSearches():
@@ -234,4 +241,6 @@ print(f"Stats gathered.")
 sys.stdout.flush()
 writeOut()
 writeSearches()
+with open(f'{args.output}.json', 'w', encoding='utf-8') as f:
+    json.dump(data, f)
 print(f"Files written.")
