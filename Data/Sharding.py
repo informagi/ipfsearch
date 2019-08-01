@@ -163,7 +163,6 @@ def distributeFiles(numFiles):
     fileList = []     # files we distributed
     for n in range(args.nodes):
         numMovedFiles = 0
-        movedFiles = []
         doneTopics = []
         topic = choice([t for t in os.listdir(args.input) if t not in doneTopics + emptyTopics])
         topicIndex = 0
@@ -173,12 +172,11 @@ def distributeFiles(numFiles):
                 return  # no non-empty topics left
             if numMovedFiles < topicLimit and topic not in emptyTopics:
                 # get a file of our topic
-                f = choice([f for f in os.listdir(f"{args.input}/{topic}") if f not in movedFiles])
+                f = choice([f for f in os.listdir(f"{args.input}/{topic}") if f not in fileList])
                 moveFile(f, topic, n)
                 fileList.append(f)
                 numMovedFiles += 1
-                movedFiles.append(f)
-                if len([f for f in os.listdir(f"{args.input}/{topic}") if f not in movedFiles]) <= 0:
+                if len([f for f in os.listdir(f"{args.input}/{topic}") if f not in fileList]) <= 0:
                     # all files of topic moved
                     emptyTopics.append(f"{topic}")
             else:
