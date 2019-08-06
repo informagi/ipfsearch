@@ -43,7 +43,7 @@ function createIndex() {
 /*
  * adds file to elasticlunr index and ipfs
  */
-async function addToIndex(index, filepath, filename) {
+async function addToIndex(topic, filepath, filename) {
   try {
     const filedata = await fs.readFileSync(filepath, 'utf8');
     // add file to ipfs
@@ -52,12 +52,17 @@ async function addToIndex(index, filepath, filename) {
     const obj = new Obj(r[0].hash, filename, filedata);
     // add to hashes-table 
     global.hashes[obj.hash] = obj.file;
-    index.addDoc(obj);
+    global.indices[topic].addDoc(obj);
+    // add to our list
+    if (global.ipfsearch.hostedFiles[topic] === undefined) {
+      global.ipfsearch.hostedFiles[topic] = [];
+    }
+    global.ipfsearch.hostedFiles[topic].push({'n': filename, 'h': r[0].hash})
   } catch (error) {
     iLog(`Error : File ${filename} has not been added to the index`);
     iLog(`Reason: ${error}`);
   }
-  return index;
+  return global.indices[topic];
 }
 
 /*
@@ -82,16 +87,17 @@ async function saveHashes() {
 /*
  * calls addToIndex on all files in a folder
  */
-async function readFilesIntoObjects(index, path) {
+async function readFilesIntoObjects(topic, path) {
   const files = fs.readdirSync(path);
   // only add 200 entries at a time, because the socket might not be able to handle all at once
   for (let i = Math.ceil(files.length/200)-1; i >= 0; i--) {
-    await Promise.all(files.slice(i*200, i*200+200).map(file => addToIndex(index, `${path}/${file}`, file)));
+    await Promise.all(files.slice(i*200, i*200+200).map(file => addToIndex(topic, `${path}/${file}`, file)));
   }
 }
 
 /*
  * load previous indices or generate and save new ones.
+ * also load global.ipfsearch.hostedFiles
  */
 async function getIndex() {
   const contents = fs.readdirSync(`./${ipfs.host}/`);
@@ -103,6 +109,10 @@ async function getIndex() {
       global.indices[contents[i].substr(5,contents[i].length-10)] = elasticlunr.Index.load(indexDump);
     }
   }
+  try {
+    await fs.statSync(`./${ipfs.host}/hostedFiles.json`);
+    global.ipfsearch.hostedFiles = JSON.parse(await fs.readFileSync(`./${ipfs.host}/hostedFiles.json`));
+  } catch (e) { }
   if (Object.keys(global.indices).length === 0) {
     // file does not exist, create fresh index
     iLog('No local indices exist, generating new index files ...');
@@ -110,7 +120,7 @@ async function getIndex() {
     for (i in contents) {
       if (fs.statSync(`./${ipfs.host}/${contents[i]}`).isDirectory()) {
         global.indices[contents[i]] = createIndex();
-        await readFilesIntoObjects(global.indices[contents[i]], `./${ipfs.host}/${contents[i]}`);
+        await readFilesIntoObjects(contents[i], `./${ipfs.host}/${contents[i]}`);
         // save the index
         await saveIndex(global.indices[contents[i]], `./${ipfs.host}/index${contents[i]}.json`);
       }

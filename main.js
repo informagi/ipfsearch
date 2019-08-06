@@ -38,6 +38,7 @@ ipfsearch.subbedTopics = [];             // topics we're subbed to
 ipfsearch.subOwners = {};                // keep track of who created a subscription
 ipfsearch.watchlist = {'q': {}, 'f': {}};// the queries we pay attention to
 ipfsearch.results = {'q': {}, 'f': {}};  // results caught while watching
+ipfsearch.hostedFiles = {};              // files we are hosting
 
 // stats
 global.stats = {};                       // global object with stat-related data
@@ -108,6 +109,7 @@ async function exitHandler(options, exitCode) {
     process.exit();
   }
   if (exitCode || exitCode === 0) {
+    await fs.writeFileSync(`./${ipfs.host}/hostedFiles.json`, JSON.stringify(ipfsearch.hostedFiles), (e) => {soLog(e);});
     log(`Received exitcode: ${exitCode}`);
   }
   if (options.exit) {

@@ -116,7 +116,7 @@ const receiveMsg = async (msg) => {
  */
 async function sub(topic) {
   topic = String(topic);
-  if (ipfsearch.subbedTopics.indexOf(topic) > -1 && ipfsearch.subOwners[topic].length > 0) {
+  if (ipfsearch.subbedTopics.indexOf(topic) > -1) {
     const tOwners = ipfsearch.subOwners[topic];
     const id = tOwners[tOwners.length - 1] + 1
     tOwners.push(id)
@@ -143,10 +143,10 @@ function unsub(topic, owner) {
   const tOwners = ipfsearch.subOwners[topic];
   if (owner === -1) {
     while (tOwners.length > 0) tOwners.pop();
-  } else if (tOwners.indexOf(owner) >= 0) {
+  } else if (tOwners !== undefined && tOwners.indexOf(owner) >= 0) {
     tOwners.splice(tOwners.indexOf(owner), 1);
   }
-  if (tOwners.length < 1) {
+  if (tOwners !== undefined && tOwners.length < 1 && ipfsearch.subbedTopics.indexOf(topic) >= 0) {
     return ipfs.pubsub.unsubscribe(`${ipfsearch.topic}${topic}`)
       .then(() => {
         ipfsearch.subbedTopics.splice(ipfsearch.subbedTopics.indexOf(topic), 1);

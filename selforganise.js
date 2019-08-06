@@ -30,6 +30,11 @@ async function clean() {
     a.push(ipfs.pin.rm(d.hash));
     // un-index
     a.push(global.indices[d.topic].removeDocByRef(d.hash));
+    // remove from hostedFiles
+    a.push(async() => {
+      soLog(global.hostedFiles[d.topic].indexOf({'f': d.path.substring(d.path.indexOf(`/${d.topic}/`)+d.topic.length+2), 'h': d.hash}));
+      global.hostedFiles[d.topic].splice(global.hostedFiles[d.topic].indexOf({'f': d.path.substring(d.path.indexOf(`/${d.topic}/`)+d.topic.length+2), 'h': d.hash}),1)
+    });
   });
   await Promise.all(a);
   while (a.length > 0) {a.pop();}
@@ -62,7 +67,7 @@ async function removeOurs(arr, topic) {
 async function addFiles(files, topic) {
   const a = files.map(async (file) => {
     await Publisher.get(file.h, `./${ipfs.host}/${topic}/${file.n}`);
-    return filesToIndex(indices[topic], `./${ipfs.host}/${topic}/${file.n}`, file.n);
+    return filesToIndex(topic, `./${ipfs.host}/${topic}/${file.n}`, file.n);
   });
   // add to so.json
   let out = {};
@@ -134,18 +139,10 @@ async function selforganise(topics, addToIndex, tries=2) {
  * find files to offer to other nodes
  */
 async function filesToOffer(topic) {
-  const path = `./${ipfs.host}/${topic}`;
-  // if path exists
-  try {
-    fs.statSync(path);
-  } catch (e) {return [];}
-  const files = fs.readdirSync(path);
-  return Promise.all(files.map(async (file) => {
-    const n = file;
-    const filedata = fs.readFileSync(`${path}/${file}`, 'utf8');
-    const h = await Publisher.hash(filedata);
-    return {h, n}
-  }));
+  if (global.ipfsearch.hostedFiles[topic] !== undefined) {
+    return global.ipfsearch.hostedFiles[topic];
+  }
+  return [];
 }
 
 module.exports.clean = clean;
