@@ -21,6 +21,7 @@ global.elasticlunr = require('elasticlunr');    // text search
 const Index = require('./index.js');            // building indices
 const Search = require('./search.js');          // searching
 const SO = require('./selforganise.js');        // self-organising
+const Sync = require('./synchronisation.js');   // synchronisation
 global.Listener = require('./listener.js');     // listening to requests
 global.Publisher = require('./publisher.js');   // publishing requests
 global.cfg = require('./config.js');            // parameters and settings
@@ -57,6 +58,13 @@ stats.searches = [];                     // searches and their results
 global.indices = {};                     // Search indices
 global.hashes = {};                      // Hash-Filename pairs
 
+// sync
+global.syn = {};                         // used by Sync
+global.syn.so = [];                      // who's ready for so
+global.syn.search = [];                  // who's ready for search
+global.syn.exit = [];                    // who's ready for exit
+
+
 // used by Listener.receiveMsg
 global.searchLocal = Search.searchIndex;
 global.offerFiles = SO.filesToOffer;
@@ -67,9 +75,7 @@ global.filesToIndex = Index.addToIndex;
  * 'Main' of the program
  */
 (async () => {
-  // start timers
-  const soTO = util.timeout(cfg.soWait);
-  const stTO = util.timeout(cfg.soWait + cfg.searchTestWait);
+  Sync.subSync();
   // housekeeping
   if (cfg.cleanPins) {await Publisher.unpinAll();}
   if (cfg.cleanPins && !cfg.removeIndex) {await Publisher.pinAll();}
@@ -82,19 +88,30 @@ global.filesToIndex = Index.addToIndex;
   for (i in subTopics) {
     await Listener.sub(subTopics[i]);
   }
-  if (cfg.cleanSO || cfg.enableSO) { await soTO; }
+  while (!Sync.isReady4so()) {
+    Sync.ready4so();
+    await util.timeout(5000);
+  }
+  log('Everyone ready for so.');
   // clear old self-organised files
   if (cfg.cleanSO) {await SO.clean();}
   if (cfg.enableSO) {await SO.selforganise(subTopics, Index.addToIndex);}
   await Index.saveHashes();
   if (cfg.runQueries) {
+    while(!Sync.isReady4search()) {
+      Sync.ready4search();
+      await util.timeout(5000);
+    }
+    log('Everyone ready for search.');
     // send out queries to test the system
-    await stTO;
     Search.searchTests()
   } else {
     log('Not running queries, so we\'re pretty much done here.');
   }
-  await util.timeout(cfg.exitWait);
+  while(!Sync.isReady4exit()) {
+      Sync.ready4exit();
+      await util.timeout(5000);
+    }
   exitHandler({cleanup: true});
 })();
 
@@ -105,6 +122,7 @@ async function exitHandler(options, exitCode) {
   await Stats.saveStats();
   if (options.cleanup) {
     await Listener.unsubAll();
+    await Sync.unsubSync();
     log('Clean exit. Goodbye.')
     process.exit();
   }
