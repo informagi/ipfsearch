@@ -11,6 +11,8 @@ ipfs*/
 Eval/*
 !Eval/Eval.py
 !Eval/Readme.md
+!Eval/LiftRelevance.py
+!Eval/RemoveDupes.py
 
 # General things
 # Sublime Text files
