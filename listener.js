@@ -123,10 +123,10 @@ async function sub(topic) {
     lLog(`Already listening on channel ${ipfsearch.topic}${topic}, id: ${id}`);
     return id;
   }
+  ipfsearch.subbedTopics.push(topic);
+  ipfsearch.subOwners[topic] = [0];
   await ipfs.pubsub.subscribe(`${ipfsearch.topic}${topic}`, receiveMsg)
     .then(() => {
-      ipfsearch.subbedTopics.push(topic);
-      ipfsearch.subOwners[topic] = [0];
       lLog(`Listening on channel ${ipfsearch.topic}${topic}`);})
     .catch((err) => {
       lLog(`Error: Failed to subscribe to ${ipfsearch.topic}${topic}`);
