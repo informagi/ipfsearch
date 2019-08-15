@@ -51,14 +51,17 @@ async function clean() {
  * remove files from arr that we already host
  */
 async function removeOurs(arr, topic) {
-  return Promise.all(arr.filter(async (el) => {
+  const ours = [];
+  await Promise.all(arr.map(async (el) => {
     try {
       await fs.statSync(`./${ipfs.host}/${topic}/${el.n}`);
-      return false;
-    } catch (error) {
-      return true;
-    }
-  }));
+      ours.push(el.n);
+    } catch (e) { }
+    return el;
+  }))
+  return arr.filter((el) => {
+    return ours.indexOf(el.n) === -1;
+  });
 }
 
 /*
@@ -139,6 +142,7 @@ async function selforganise(topics, addToIndex, tries=2) {
  * find files to offer to other nodes
  */
 async function filesToOffer(topic) {
+  topic = String(topic);
   if (global.ipfsearch.hostedFiles[topic] !== undefined) {
     return global.ipfsearch.hostedFiles[topic];
   }
