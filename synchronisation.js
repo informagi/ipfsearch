@@ -34,6 +34,12 @@ const receiveSyncMsg = async (msg) => {
     }
     return;
   }
+  if (data.event === 'exit') {
+    if (syn.exit.indexOf(msg.from) < 0) {
+      syn.exit.push(msg.from);
+    }
+    return;
+  }
 };
 
 /*
@@ -148,3 +154,5 @@ module.exports.ready4so = ready4so;
 module.exports.isReady4so = isReady4so;
 module.exports.ready4search = ready4search;
 module.exports.isReady4search = isReady4search;
+module.exports.ready4exit = ready4exit;
+module.exports.isReady4exit = isReady4exit;

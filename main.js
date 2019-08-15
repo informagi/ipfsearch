@@ -109,9 +109,10 @@ global.filesToIndex = Index.addToIndex;
     log('Not running queries, so we\'re pretty much done here.');
   }
   while(!Sync.isReady4exit()) {
-      Sync.ready4exit();
-      await util.timeout(5000);
-    }
+    Sync.ready4exit();
+    await util.timeout(5000);
+  }
+  await util.timeout(500000);
   exitHandler({cleanup: true});
 })();
 
@@ -123,11 +124,11 @@ async function exitHandler(options, exitCode) {
   if (options.cleanup) {
     await Listener.unsubAll();
     await Sync.unsubSync();
+    await fs.writeFileSync(`./${ipfs.host}/hostedFiles.json`, JSON.stringify(ipfsearch.hostedFiles), (e) => {soLog(e);});
     log('Clean exit. Goodbye.')
     process.exit();
   }
   if (exitCode || exitCode === 0) {
-    await fs.writeFileSync(`./${ipfs.host}/hostedFiles.json`, JSON.stringify(ipfsearch.hostedFiles), (e) => {soLog(e);});
     log(`Received exitcode: ${exitCode}`);
   }
   if (options.exit) {
