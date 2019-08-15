@@ -140,7 +140,7 @@ async function removeIndex() {
         await fs.unlinkSync(`./${ipfs.host}/${contents[i]}`);
       }
     }
-  } catch(e) { log(e); }
+  } catch(e) { iLog(e); }
 }
 
 module.exports.getIndex = getIndex;
