@@ -23,7 +23,6 @@ Here too, we use the official image `ipfs/ipfs-cluster:latest`.
 This one we build ourselves.
 In this folder you can find two versions of Node-IPFS.
 One that already includes the required npm packages (`NodePkgDockerfile.sh`) and one that does not (`NodeNoPkgDockerfile.sh`).
-🚧`NodePkgDockerfile.sh` is incomplete, use the other one for now.🚧
 Choose one, rename it to `Dockerfile` (No file extension) and build it by running
 ```bash
 docker build -t node-ipfs:pkg .
@@ -32,14 +31,14 @@ docker build -t node-ipfs:pkg .
 
 #### ipfs-http-client
 If you are using `node-ipfs:nopkg` (built from `NodeNoPkgDockerfile.sh`),
-then the container only includes [`Node.js`](https://nodejs.org/en/) and not the npm package [`ipfs-http-client`](https://github.com/ipfs/js-ipfs-http-client).
-You thus need to install it manually.
+then the container only includes [`Node.js`](https://nodejs.org/en/) and not the npm packages [`ipfs-http-client`](https://github.com/ipfs/js-ipfs-http-client) and [`elasticlunr.js`](http://elasticlunr.com/).
+You thus need to install them manually.
 To do this open a command interface in the root directory of this repository (`../` relative to this file) and run
 ```bash
 npm install
 ```
 
-This step is not needed when using `node-ipfs:pkg`.
+This step is not necessary when using `node-ipfs:pkg`.
 
 ## docker-compose.yml
 You can use `generateDockerCompose.py` to generate your `docker-compose.yml`.

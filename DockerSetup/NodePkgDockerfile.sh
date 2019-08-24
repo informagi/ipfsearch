@@ -3,6 +3,7 @@ FROM node:12-stretch
 
 # Install the package
 RUN npm install --global --unsafe-perm ipfs-http-client
+RUN npm install --global --unsafe-perm elasticlunr
 
 # Switch to smaller container
 FROM node:12-alpine

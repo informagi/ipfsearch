@@ -9,7 +9,6 @@ See `python Eval.py -h` for information on how to use the script.
 For now, you can use it without arguments or flags.
 
 It generates a markdown file (default: `output.md`) with all information on the run presented in simple tables.
-(TODO:)
 Furthermore, it generates search result files in the correct format to be analysed by [`trec_eval`](https://github.com/usnistgov/trec_eval).
 If your dataset provides a ground-truth for relevance of search results: great!
 If not, we recommend comparing performance of different runs and treating one of them as truth.
@@ -20,3 +19,15 @@ you will see a drop in quality of search results.
 BUT: What did you gain in performance?
 The indices are smaller and instead of always querying one node,
 the workload is distributed among the peers.
+
+## `RemoveDupes.py`
+This could've (should've) been part of the `Eval.py` file.
+It removes duplicates in a `*.results` file.
+The name of the file is the only parameter.
+Run it before using `trec_eval`.
+
+## `LiftRelevance.py`
+This also could've (should've) been part of the `Eval.py` script.
+It lifts the relevance of results in a `*.qrels` file to 1.
+The `-t` parameter is the lower relevance threshold a file should have before being lifted in relevance.
+Use `-t 0` if you want to make all results relevant.

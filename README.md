@@ -95,5 +95,8 @@ Manage the self-organised files: Retrieve and delete them.
 ### ```stats.js```
 Exports all statistics.
 
+### ```synchronisation.js```
+Keeps the nodes synchronised such that they are in the same phase at all times.
+
 ### ```util.js```
 Small utility functions.
