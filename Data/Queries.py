@@ -19,6 +19,8 @@ parser.add_argument("-n", "--nodes", type=int, default=-1,
                     help="the number of peers to distribute the queries to (-1 = all), default: -1")
 parser.add_argument("-m", "--mode", default="Random",
                     help="How to classify the queries: 'Random', 'loadLDA'")
+parser.add_argument("-s", "--score", type=float, default=99.0,
+                    help="The minimum score for passable results, default: 99.0")
 parser.add_argument("-i", "--input", default="",
                     help="Input-file with one query per line, optional, default: None")
 parser.add_argument("-o", "--output", default="../",
@@ -116,13 +118,13 @@ def classifyQueries(model=0, dct=0):
     r = {'queries': [], 'topics': {}}
     if args.mode == 'Random':
         for query in queries:
-            r['queries'].append({'q': query, 's': 2.0})
+            r['queries'].append({'q': query, 's': args.score})
             r['topics'][query] = choice(model)
     if args.mode == 'loadLDA':
         # https://radimrehurek.com/gensim/models/ldamodel.html
         for query in queries:
             tmp = model[dct.doc2bow(query.split())]
-            r['queries'].append({'q': query, 's': 2.0})
+            r['queries'].append({'q': query, 's': args.score})
             r['topics'][query] = max(tmp, key=itemgetter(1))[0]
     return r
 
