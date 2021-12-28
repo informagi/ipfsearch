@@ -1,3 +1,5 @@
+_This repository has been archived because it has not been maintained for security issues and updates on IPFS._
+
 # InterPlanetary Distributed File Search - A Hybrid Self-Organizing Peer-To-Peer Search Architecture
 This repository hosts the code which was used for the Master Thesis
 _InterPlanetary Distributed File Search - A Hybrid Self-Organizing Peer-To-Peer Search Architecture_ by Mathis Sackers (2019).
